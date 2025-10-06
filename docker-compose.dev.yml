@@ -1,0 +1,58 @@
+services:
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "0.0.0.0:8000:80"
+      - "0.0.0.0:8001:8080"
+      - "0.0.0.0:8443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - portfolio-network
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./Portfolio-Jhasmany-Frontend
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3002:3000"
+    volumes:
+      - ./Portfolio-Jhasmany-Frontend:/app
+      - /app/node_modules
+      - /app/.next
+    environment:
+      - NODE_ENV=development
+      - NEXT_TELEMETRY_DISABLED=1
+      - WATCHPACK_POLLING=true
+    depends_on:
+      - backend
+    networks:
+      - portfolio-network
+
+  backend:
+    build:
+      context: ./Portfolio-Jhasmany-Backend
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./Portfolio-Jhasmany-Backend:/app
+      - /app/node_modules
+    expose:
+      - "3001"
+    environment:
+      - NODE_ENV=development
+      - PORT=3001
+    networks:
+      - portfolio-network
+
+networks:
+  portfolio-network:
+    driver: bridge
+
+volumes:
+  backend_data:
+    driver: local

@@ -6,24 +6,34 @@ import { CheckIcon, CloseIcon } from '@/utils/icons'
 import { useEffect, useState } from 'react'
 
 const ThemeMenu = () => {
-  const [theme, setTheme] = useState('dark')
+  const [theme, setTheme] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('theme') ?? 'dark'
+    }
+    return 'dark'
+  })
   const [showThemeMenu, setShowThemeMenu] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const menuRef = useOutsideClick(() => setShowThemeMenu(false))
 
   useEffect(() => {
-    if (window) setTheme(localStorage.getItem('theme') ?? 'dark')
+    setMounted(true)
   }, [])
 
   useEffect(() => {
-    if (window) document.documentElement.setAttribute('data-theme', theme)
+    if (typeof window !== 'undefined') {
+      document.documentElement.setAttribute('data-theme', theme)
+    }
   }, [theme])
 
   const changeTheme = (theme: string) => {
-    if (window) {
+    if (typeof window !== 'undefined') {
       setTheme(theme)
       localStorage.setItem('theme', theme)
     }
   }
+
+  if (!mounted) return null
 
   return (
     <div ref={menuRef} className="fixed right-6 bottom-4 z-50 md:right-11 md:bottom-11">

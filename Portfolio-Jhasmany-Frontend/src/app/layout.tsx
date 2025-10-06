@@ -13,13 +13,13 @@ const title = 'Jhasmany Fernandez | Full-Stack Web Developer in Chicago'
 const description =
   "Skilled full-stack web developer in Chicago. I build responsive, user-friendly websites with React, NextJS, and NodeJS. Let's bring your vision to life. Hire me today!"
 
-const url = process.env.NEXT_PUBLIC_SITE_URL
+const url = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
 
 export const metadata: Metadata = {
   title,
   description,
   category: 'technology',
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL!),
+  metadataBase: new URL(url),
   alternates: {
     canonical: url,
   },
