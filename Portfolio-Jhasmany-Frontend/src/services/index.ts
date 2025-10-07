@@ -1,5 +1,6 @@
 import { Project, Testimonial } from '@/lib/types'
 import { promises as fs } from 'fs'
+import { unstable_cache } from 'next/cache'
 import path from 'path'
 
 // Function to read project file
@@ -8,8 +9,8 @@ const readProjectFile = async (filePath: string): Promise<Project> => {
   return JSON.parse(projectData)
 }
 
-// Function to get all projects
-const getAllProjects = async (): Promise<Project[]> => {
+// Internal function to fetch all projects (not cached)
+const fetchAllProjects = async (): Promise<Project[]> => {
   try {
     const projectsPath = path.join(process.cwd(), '/content/projects')
     const projectsName = await fs.readdir(projectsPath)
@@ -28,21 +29,28 @@ const getAllProjects = async (): Promise<Project[]> => {
     return projects
   } catch (error) {
     // Handle errors
-    console.error('Error:', error)
+    console.error('[getAllProjects] Error loading projects:', error)
     return []
   }
 }
 
-const getAllTestimonials = async (): Promise<Testimonial[]> => {
+// Cached version - revalidates every hour (3600 seconds)
+const getAllProjects = unstable_cache(fetchAllProjects, ['all-projects'], {
+  revalidate: 3600, // Cache for 1 hour
+  tags: ['projects'],
+})
+
+// Internal function to fetch all testimonials (not cached)
+const fetchAllTestimonials = async (): Promise<Testimonial[]> => {
   try {
     const testimonialsPath = path.join(process.cwd(), '/content/testimonials')
     const testimonialsName = await fs.readdir(testimonialsPath)
 
     const testimonials = await Promise.all(
-      testimonialsName.map(async (projectName) => {
-        const filePath = path.join(testimonialsPath, projectName)
-        const projectDetails = await fs.readFile(filePath, 'utf8')
-        return JSON.parse(projectDetails)
+      testimonialsName.map(async (testimonialName) => {
+        const filePath = path.join(testimonialsPath, testimonialName)
+        const testimonialDetails = await fs.readFile(filePath, 'utf8')
+        return JSON.parse(testimonialDetails)
       }),
     )
 
@@ -52,9 +60,15 @@ const getAllTestimonials = async (): Promise<Testimonial[]> => {
     return testimonials
   } catch (error) {
     // Handle errors
-    console.error('Error:', error)
+    console.error('[getAllTestimonials] Error loading testimonials:', error)
     return []
   }
 }
+
+// Cached version - revalidates every hour (3600 seconds)
+const getAllTestimonials = unstable_cache(fetchAllTestimonials, ['all-testimonials'], {
+  revalidate: 3600, // Cache for 1 hour
+  tags: ['testimonials'],
+})
 
 export { getAllProjects, getAllTestimonials }

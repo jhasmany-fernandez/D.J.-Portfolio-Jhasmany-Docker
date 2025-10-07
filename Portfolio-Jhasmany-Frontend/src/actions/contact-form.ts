@@ -1,56 +1,54 @@
 'use server'
 
+import { contactSchema } from '@/schemas/contact.schema'
+import { z } from 'zod'
+
 const action = async (_: { success: boolean; message: string } | null, formData: FormData) => {
   try {
-    const name = formData.get('name')
-    if (!name)
-      return {
-        success: false,
-        message: 'Please provide your name.',
-      }
+    // Convert FormData to object
+    const data = {
+      name: formData.get('name') as string,
+      email: formData.get('email') as string,
+      subject: formData.get('subject') as string,
+      message: formData.get('message') as string,
+    }
 
-    const email = formData.get('email')
-    if (!email)
-      return {
-        success: false,
-        message: 'Please provide your email address.',
-      }
+    // Validate with Zod schema (server-side validation)
+    const validated = contactSchema.parse(data)
 
-    const subject = formData.get('subject')
-    if (!subject)
-      return {
-        success: false,
-        message: 'Please provide a subject.',
-      }
-
-    const message = formData.get('message')
-    if (!message)
-      return {
-        success: false,
-        message: 'Please provide a message.',
-      }
-
-    const res = await fetch(process.env.CONTACT_FORM_ACTION_URL!, {
+    // Call internal API route
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+    const res = await fetch(`${baseUrl}/api/contact`, {
       method: 'POST',
-      body: formData,
       headers: {
+        'Content-Type': 'application/json',
         Accept: 'application/json',
       },
+      body: JSON.stringify(validated),
     })
 
-    if (res.ok) {
-      return { success: true, message: 'Thanks for your submission!' }
-    } else {
-      const data = await res.json()
-      console.error(data?.error)
+    const result = await res.json()
 
+    if (res.ok && result.success) {
+      return { success: true, message: result.message || 'Thanks for your submission!' }
+    } else {
+      console.error('[Contact Form] API error:', result)
       return {
         success: false,
-        message: 'Oops! There was a problem submitting your form',
+        message: result.error || 'Oops! There was a problem submitting your form',
       }
     }
   } catch (error) {
-    console.error('Contact form submission error: ' + error)
+    // Handle Zod validation errors
+    if (error instanceof z.ZodError) {
+      const firstError = error.issues[0]
+      return {
+        success: false,
+        message: firstError?.message || 'Invalid form data',
+      }
+    }
+
+    console.error('[Contact Form] Submission error:', error)
     return {
       success: false,
       message: 'Oops! There was a problem submitting your form',

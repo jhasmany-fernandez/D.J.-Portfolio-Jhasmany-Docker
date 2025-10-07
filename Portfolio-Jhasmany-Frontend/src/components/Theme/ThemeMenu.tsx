@@ -6,31 +6,28 @@ import { CheckIcon, CloseIcon } from '@/utils/icons'
 import { useEffect, useState } from 'react'
 
 const ThemeMenu = () => {
-  const [theme, setTheme] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('theme') ?? 'dark'
-    }
-    return 'dark'
-  })
+  const [theme, setTheme] = useState('dark')
   const [showThemeMenu, setShowThemeMenu] = useState(false)
   const [mounted, setMounted] = useState(false)
   const menuRef = useOutsideClick(() => setShowThemeMenu(false))
 
+  // Load theme from localStorage after mounting (client-side only)
   useEffect(() => {
     setMounted(true)
+    const savedTheme = localStorage.getItem('theme') ?? 'dark'
+    setTheme(savedTheme)
+    document.documentElement.setAttribute('data-theme', savedTheme)
   }, [])
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (mounted) {
       document.documentElement.setAttribute('data-theme', theme)
     }
-  }, [theme])
+  }, [theme, mounted])
 
-  const changeTheme = (theme: string) => {
-    if (typeof window !== 'undefined') {
-      setTheme(theme)
-      localStorage.setItem('theme', theme)
-    }
+  const changeTheme = (newTheme: string) => {
+    setTheme(newTheme)
+    localStorage.setItem('theme', newTheme)
   }
 
   if (!mounted) return null
