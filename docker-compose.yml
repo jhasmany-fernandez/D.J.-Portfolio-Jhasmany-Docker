@@ -21,9 +21,12 @@ services:
       dockerfile: Dockerfile
     expose:
       - "3000"
+    ports:
+      - "0.0.0.0:3002:3000"
     environment:
       - NODE_ENV=production
       - NEXT_TELEMETRY_DISABLED=1
+      - NEXT_PUBLIC_SITE_URL=http://181.114.111.21
     depends_on:
       - backend
     networks:
