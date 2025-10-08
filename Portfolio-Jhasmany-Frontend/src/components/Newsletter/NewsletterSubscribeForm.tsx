@@ -16,33 +16,83 @@ const NewsletterSubscribeForm = () => {
   };
 
   if (isSubmitted && status?.success) {
+    const isAlreadySubscribed = status?.alreadySubscribed;
+
     return (
-      <div className="bg-secondary border border-accent/20 rounded-lg p-6">
+      <div className={`border rounded-lg p-6 ${
+        isAlreadySubscribed
+          ? 'bg-secondary border-neutral/20'
+          : 'bg-secondary border-accent/20'
+      }`}>
         <div className="text-center">
-          <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-accent/10 mb-4">
+          <div className={`mx-auto flex items-center justify-center h-16 w-16 rounded-full mb-4 ${
+            isAlreadySubscribed
+              ? 'bg-neutral/10'
+              : 'bg-accent/10'
+          }`}>
             <svg
-              className="h-8 w-8 text-accent"
+              className={`h-8 w-8 ${
+                isAlreadySubscribed
+                  ? 'text-neutral'
+                  : 'text-accent'
+              }`}
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-              />
+              {isAlreadySubscribed ? (
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 13l4 4L19 7"
+                />
+              ) : (
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                />
+              )}
             </svg>
           </div>
           <h3 className="text-lg font-medium text-secondary-content mb-2">
-            🎉 Almost There!
+            {isAlreadySubscribed ? '✅ ¡Ya te encontrabas suscrito!' : '🎉 Almost There!'}
           </h3>
           <p className="text-sm text-neutral mb-4">
             {status.message}
           </p>
-          <div className="text-xs text-neutral">
-            Check your email inbox (and spam folder) for the confirmation link.
-          </div>
+          {!isAlreadySubscribed && (
+            <div className="text-xs text-neutral">
+              Check your email inbox (and spam folder) for the confirmation link.
+            </div>
+          )}
+          {!isAlreadySubscribed && (
+            <div className="mt-6 text-center">
+              <Link
+                href="/"
+                className="text-sm text-accent hover:text-accent/80 transition-colors"
+              >
+                ← Volver al portafolio
+              </Link>
+            </div>
+          )}
+          {isAlreadySubscribed && (
+            <div className="text-xs text-neutral">
+              You're all set! You'll continue receiving our portfolio updates and developer insights.
+            </div>
+          )}
+          {isAlreadySubscribed && (
+            <div className="mt-6 text-center">
+              <Link
+                href="/"
+                className="text-sm text-accent hover:text-accent/80 transition-colors"
+              >
+                ← Volver al portafolio
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     );

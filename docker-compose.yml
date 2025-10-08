@@ -31,7 +31,9 @@ services:
       - NEXT_TELEMETRY_DISABLED=1
       - NEXT_PUBLIC_SITE_URL=http://181.114.111.21
       - NEXT_PUBLIC_API_URL=http://localhost:3001
-      - API_URL=http://backend:3001
+      - API_URL=http://localhost:3001
+    extra_hosts:
+      - "localhost:host-gateway"
     depends_on:
       - backend
     networks:
@@ -51,8 +53,8 @@ services:
       - PORT=3001
       - DB_HOST=postgres
       - DB_PORT=5432
-      - DB_USERNAME=portfolio_user
-      - DB_PASSWORD=portfolio_password
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=Postgres2307***
       - DB_NAME=portfolio_db
       - JWT_SECRET=your-super-secret-jwt-key-change-in-production
       - JWT_EXPIRES_IN=7d
@@ -71,10 +73,12 @@ services:
 
   postgres:
     image: postgres:15-alpine
+    ports:
+      - "0.0.0.0:5434:5432"
     environment:
       - POSTGRES_DB=portfolio_db
-      - POSTGRES_USER=portfolio_user
-      - POSTGRES_PASSWORD=portfolio_password
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=Postgres2307***
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:

@@ -1,8 +1,12 @@
-import { footerLinks, languages } from '@/appData'
+'use client'
+
+import { footerLinks } from '@/appData'
 import { socials } from '@/appData/personal'
+import { useLanguage } from '@/contexts/LanguageContext'
 import Logo from '../Navbar/Logo'
 
 const Footer = () => {
+  const { currentLanguage, setLanguage, availableLanguages } = useLanguage()
   return (
     <footer className="bg-secondary relative flex min-h-[560px] flex-col justify-between gap-20 overflow-hidden px-4 py-14 md:p-14">
       <div className="relative z-20 grid grid-cols-1 items-start gap-20 md:grid-cols-2 md:gap-12">
@@ -82,12 +86,18 @@ const Footer = () => {
           <div className="md:self-end">
             <p className="text-neutral mb-8 text-sm md:text-right">Languages</p>
             <div className="flex gap-8 md:gap-4 lg:gap-8">
-              {languages.map((language, idx) => (
-                <span
+              {availableLanguages.map((language) => (
+                <button
                   key={language}
-                  className={idx === 0 ? 'text-neutral' : 'text-tertiary-content'}>
+                  onClick={() => setLanguage(language)}
+                  className={`cursor-pointer transition-colors duration-300 hover:text-neutral ${
+                    language === currentLanguage
+                      ? 'text-neutral font-medium'
+                      : 'text-tertiary-content hover:text-neutral/80'
+                  }`}
+                >
                   {language}
-                </span>
+                </button>
               ))}
             </div>
           </div>

@@ -9,7 +9,7 @@ const Input: FC<InputProps> = ({ type = 'text', id, label, ...props }) => {
   return (
     <div className="mb-4 flex w-full flex-col gap-2">
       {label && (
-        <label htmlFor={id} className="text-neutral text-base">
+        <label htmlFor={id} className="block text-sm font-medium text-secondary-content mb-1">
           {label}
         </label>
       )}
@@ -17,7 +17,7 @@ const Input: FC<InputProps> = ({ type = 'text', id, label, ...props }) => {
         id={id}
         type={type}
         {...props}
-        className="border-border focus:ring-accent text-neutral w-full rounded-lg border p-[10px] placeholder:font-thin focus:ring-2 focus:outline-none"
+        className="block w-full px-3 py-2 bg-primary border border-border rounded-md text-primary-content placeholder-neutral focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
       />
     </div>
   )

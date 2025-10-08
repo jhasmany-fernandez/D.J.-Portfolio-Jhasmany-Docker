@@ -177,11 +177,11 @@ const ResetPasswordForm = () => {
               />
               <button
                 type="button"
-                className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center hover:text-accent transition-colors"
                 onClick={() => setShowPassword(!showPassword)}
               >
                 <svg
-                  className="h-5 w-5 text-neutral"
+                  className="h-5 w-5 text-secondary-content hover:text-accent transition-colors"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -225,11 +225,11 @@ const ResetPasswordForm = () => {
               />
               <button
                 type="button"
-                className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center hover:text-accent transition-colors"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
               >
                 <svg
-                  className="h-5 w-5 text-neutral"
+                  className="h-5 w-5 text-secondary-content hover:text-accent transition-colors"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"

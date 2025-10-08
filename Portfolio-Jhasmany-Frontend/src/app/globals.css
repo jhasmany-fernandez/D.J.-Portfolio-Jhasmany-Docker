@@ -145,6 +145,43 @@
   }
 }
 
+/* Theme input fixes with higher specificity */
+@layer utilities {
+  /* Override Tailwind's base input reset with theme-aware styling */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="search"],
+  input[type="url"],
+  textarea {
+    background-color: unset !important;
+  }
+
+  /* Force bg-primary class to work on inputs */
+  input.bg-primary,
+  input[class*="bg-primary"] {
+    background-color: var(--color-primary) !important;
+    color: var(--color-primary-content) !important;
+  }
+
+  /* Target specific input elements in forms */
+  form input[type="email"],
+  form input[type="password"],
+  form input[type="text"] {
+    background-color: inherit !important;
+  }
+
+  /* Ultra-specific selectors for theme support */
+  [data-theme] input[class*="bg-primary"],
+  [data-theme="dark"] input[class*="bg-primary"],
+  [data-theme="aqua"] input[class*="bg-primary"],
+  [data-theme="light"] input[class*="bg-primary"],
+  [data-theme="retro"] input[class*="bg-primary"] {
+    background-color: var(--color-primary) !important;
+    color: var(--color-primary-content) !important;
+  }
+}
+
 html {
   scroll-behavior: smooth !important;
   scrollbar-width: none;
