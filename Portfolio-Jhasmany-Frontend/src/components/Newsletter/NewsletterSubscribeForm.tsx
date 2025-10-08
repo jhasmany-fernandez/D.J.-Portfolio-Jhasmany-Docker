@@ -120,13 +120,14 @@ const NewsletterSubscribeForm = () => {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label htmlFor="firstName" className="block text-sm font-medium text-secondary-content">
-                First Name
+                First Name *
               </label>
               <input
                 id="firstName"
                 name="firstName"
                 type="text"
                 autoComplete="given-name"
+                required
                 className="mt-1 block w-full px-3 py-2 bg-primary border border-border rounded-md text-primary-content placeholder-neutral focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
                 placeholder="John"
               />
@@ -134,13 +135,14 @@ const NewsletterSubscribeForm = () => {
 
             <div>
               <label htmlFor="lastName" className="block text-sm font-medium text-secondary-content">
-                Last Name
+                Last Name *
               </label>
               <input
                 id="lastName"
                 name="lastName"
                 type="text"
                 autoComplete="family-name"
+                required
                 className="mt-1 block w-full px-3 py-2 bg-primary border border-border rounded-md text-primary-content placeholder-neutral focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
                 placeholder="Doe"
               />
