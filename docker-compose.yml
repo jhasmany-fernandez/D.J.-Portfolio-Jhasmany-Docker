@@ -4,7 +4,7 @@ services:
     ports:
       - "0.0.0.0:8000:80"
       - "0.0.0.0:8001:8080"
-      - "0.0.0.0:8443:443"
+      - "0.0.0.0:8444:443"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/ssl:/etc/nginx/ssl:ro
@@ -39,9 +39,39 @@ services:
       dockerfile: Dockerfile
     expose:
       - "3001"
+    ports:
+      - "0.0.0.0:3001:3001"
     environment:
       - NODE_ENV=production
       - PORT=3001
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USERNAME=portfolio_user
+      - DB_PASSWORD=portfolio_password
+      - DB_NAME=portfolio_db
+      - JWT_SECRET=your-super-secret-jwt-key-change-in-production
+      - JWT_EXPIRES_IN=7d
+      - EMAIL_HOST=smtp.gmail.com
+      - EMAIL_PORT=587
+      - EMAIL_USER=jhasmany.fernandez.dev@gmail.com
+      - EMAIL_PASS=dwhx cdax xxne lrwo
+      - EMAIL_FROM=jhasmany.fernandez.dev@gmail.com
+      - EMAIL_FROM_NAME=Jhasmany Fernandez - Portfolio
+      - FRONTEND_URL=http://localhost:3002
+    depends_on:
+      - postgres
+    networks:
+      - portfolio-network
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=portfolio_db
+      - POSTGRES_USER=portfolio_user
+      - POSTGRES_PASSWORD=portfolio_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
     networks:
       - portfolio-network
     restart: unless-stopped
@@ -51,5 +81,5 @@ networks:
     driver: bridge
 
 volumes:
-  backend_data:
+  postgres_data:
     driver: local

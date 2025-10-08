@@ -23,6 +23,10 @@ const navItems = [
     label: '_contact-me',
     href: '/#contact',
   },
+  {
+    label: '_login',
+    href: '/auth/login',
+  },
 ]
 
 const Navbar = () => {

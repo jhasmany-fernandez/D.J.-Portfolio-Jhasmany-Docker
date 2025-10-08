@@ -24,14 +24,14 @@ const Hero = () => {
 
           <div className="mt-6 flex flex-wrap gap-6">
             <a
-              href="#"
+              href="/auth/login"
               aria-label="Connect with me"
               className="bg-accent min-w-32 cursor-pointer rounded-lg px-[14px] py-[10px] text-center text-sm font-medium text-[#00071E]">
               Acceso Personal
             </a>
             <a
-              href="#"
-              aria-label="View LinkedIn Profile"
+              href="/newsletter/subscribe"
+              aria-label="Subscribe to Newsletter"
               className="text-neutral bg-secondary cursor-pointer rounded-lg px-[14px] py-[10px] text-sm">
               Newsletter Clientes
             </a>
