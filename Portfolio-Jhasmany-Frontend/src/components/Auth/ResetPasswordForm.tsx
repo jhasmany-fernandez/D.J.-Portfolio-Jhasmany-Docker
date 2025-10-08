@@ -27,16 +27,36 @@ const ResetPasswordForm = () => {
     // Validate token
     const validateToken = async () => {
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/validate-reset-token?token=${token}`, {
+        const url = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/validate-reset-token?token=${token}`;
+        console.log('🔍 API URL:', process.env.NEXT_PUBLIC_API_URL);
+        console.log('🔍 Full validation URL:', url);
+        console.log('🔍 Token:', token);
+
+        const response = await fetch(url, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache',
           },
         });
 
+        console.log('🔍 Response status:', response.status);
+        console.log('🔍 Response ok:', response.ok);
+        console.log('🔍 Response headers:', Object.fromEntries(response.headers.entries()));
+
         const result = await response.json();
-        setTokenValidation(result);
-      } catch {
+        console.log('🔍 Response result:', result);
+
+        if (!response.ok) {
+          console.log('❌ Response not ok, setting token as invalid');
+          setTokenValidation({ valid: false, message: result.message || 'Token inválido' });
+        } else {
+          console.log('✅ Response ok, setting token validation result');
+          setTokenValidation(result);
+        }
+      } catch (error) {
+        console.error('💥 Token validation error:', error);
         setTokenValidation({ valid: false, message: 'Failed to validate token' });
       } finally {
         setIsValidating(false);

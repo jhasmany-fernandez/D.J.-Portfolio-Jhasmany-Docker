@@ -2,7 +2,7 @@
 
 import { loginSchema, registerSchema, forgotPasswordSchema, resetPasswordSchema } from '@/schemas/auth.schema'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://backend:3001'
+const API_URL = process.env.API_URL || 'http://backend:3001'
 
 export async function loginAction(prevState: unknown, formData: FormData) {
   const validatedFields = loginSchema.safeParse({

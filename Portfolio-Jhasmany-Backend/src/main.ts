@@ -33,7 +33,7 @@ async function bootstrap() {
       ? ['http://181.114.111.21', 'https://181.114.111.21']
       : ['http://localhost:3000', 'http://localhost:3002', 'http://localhost:8000'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Cache-Control', 'Pragma'],
     credentials: true,
     maxAge: 86400, // 24 hours
   });

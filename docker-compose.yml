@@ -19,6 +19,9 @@ services:
     build:
       context: ./Portfolio-Jhasmany-Frontend
       dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_API_URL=http://localhost:3001
+        - NEXT_PUBLIC_SITE_URL=http://181.114.111.21
     expose:
       - "3000"
     ports:
@@ -27,6 +30,8 @@ services:
       - NODE_ENV=production
       - NEXT_TELEMETRY_DISABLED=1
       - NEXT_PUBLIC_SITE_URL=http://181.114.111.21
+      - NEXT_PUBLIC_API_URL=http://localhost:3001
+      - API_URL=http://backend:3001
     depends_on:
       - backend
     networks:
@@ -42,7 +47,7 @@ services:
     ports:
       - "0.0.0.0:3001:3001"
     environment:
-      - NODE_ENV=production
+      - NODE_ENV=development
       - PORT=3001
       - DB_HOST=postgres
       - DB_PORT=5432
