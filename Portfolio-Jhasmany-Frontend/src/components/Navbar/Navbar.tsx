@@ -20,7 +20,7 @@ const navItems = [
     href: '/#services',
   },
   {
-    label: '_contact-me',
+    label: '_contact',
     href: '/#contact',
   },
   {
