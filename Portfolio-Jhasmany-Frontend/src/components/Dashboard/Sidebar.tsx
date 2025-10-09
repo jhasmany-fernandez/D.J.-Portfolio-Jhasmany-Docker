@@ -96,7 +96,7 @@ const Sidebar = () => {
   const pathname = usePathname()
 
   return (
-    <aside className="bg-secondary border-border fixed left-0 top-16 h-[calc(100vh-4rem)] w-64 border-r overflow-y-auto z-40">
+    <aside className="bg-secondary border-border fixed left-0 top-16 h-[calc(100vh-4rem)] w-16 lg:w-64 border-r overflow-y-auto z-40 transition-all duration-300">
       <div className="p-4">
         <nav className="space-y-2">
           {sidebarItems.map(({ label, href, icon: Icon, description }) => {
@@ -110,11 +110,11 @@ const Sidebar = () => {
                   isActive
                     ? 'bg-primary/20 text-accent border border-accent/30'
                     : 'text-primary-content hover:text-accent'
-                }`}
+                } justify-center lg:justify-start`}
                 title={description}
               >
                 <Icon />
-                <div className="flex flex-col">
+                <div className="flex flex-col hidden lg:flex">
                   <span className="font-medium">{label}</span>
                   <span className="text-xs text-tertiary-content group-hover:text-tertiary-content/80">
                     {description}
@@ -127,7 +127,7 @@ const Sidebar = () => {
       </div>
 
       {/* Footer del sidebar */}
-      <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-border bg-secondary">
+      <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-border bg-secondary hidden lg:block">
         <div className="text-xs text-tertiary-content text-center">
           <p>Admin Panel v1.0</p>
           <p className="text-accent">Jhasmany Fernández</p>
