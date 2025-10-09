@@ -3,7 +3,7 @@ import './globals.css'
 
 import Footer from '@/components/Footer/Footer'
 import LanguageIndicator from '@/components/LanguageIndicator/LanguageIndicator'
-import Navbar from '@/components/Navbar/Navbar'
+import NavigationWrapper from '@/components/Navigation/NavigationWrapper'
 import ThemeMenu from '@/components/Theme/ThemeMenu'
 import { LanguageProvider } from '@/contexts/LanguageContext'
 import { Fira_Code } from 'next/font/google'
@@ -50,7 +50,7 @@ export default function RootLayout({
       <body className={`${firaCode.className}`}>
         <LanguageProvider>
           <header>
-            <Navbar />
+            <NavigationWrapper />
           </header>
           {children}
           <ThemeMenu />

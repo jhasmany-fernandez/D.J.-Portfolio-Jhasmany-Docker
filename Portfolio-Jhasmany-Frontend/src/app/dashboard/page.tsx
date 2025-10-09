@@ -8,21 +8,7 @@ export const metadata: Metadata = {
 
 export default function DashboardPage() {
   return (
-    <div className="min-h-screen bg-primary">
-      <header className="bg-secondary border-border border-b">
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <h1 className="text-neutral text-3xl font-bold">Dashboard</h1>
-            <Link
-              href="/"
-              className="text-accent hover:text-accent/80 transition-colors"
-            >
-              Back to Portfolio
-            </Link>
-          </div>
-        </div>
-      </header>
-
+    <div className="min-h-screen bg-primary pt-16">
       <main className="max-w-7xl mx-auto px-4 py-12">
         <div className="bg-secondary border-border rounded-lg border p-8">
           <div className="text-center">
@@ -51,7 +37,13 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            <div className="mt-8">
+            <div className="mt-8 flex gap-4 justify-center">
+              <Link
+                href="/"
+                className="bg-secondary hover:bg-secondary/80 text-primary-content border border-border inline-block px-6 py-2 rounded-lg transition-colors duration-300"
+              >
+                Back to Portfolio
+              </Link>
               <Link
                 href="/auth/login"
                 className="bg-accent hover:bg-accent/80 text-secondary inline-block px-6 py-2 rounded-lg transition-colors duration-300"

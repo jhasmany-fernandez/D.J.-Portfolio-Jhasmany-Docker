@@ -34,6 +34,20 @@ const Navbar = () => {
   const pathname = usePathname()
   const shouldHideNavItems = pathname === '/auth/login' || pathname === '/auth/register' || pathname === '/newsletter/subscribe'
 
+  // Function to get the display name based on the current route
+  const getDisplayName = () => {
+    switch (pathname) {
+      case '/auth/login':
+        return 'login'
+      case '/auth/register':
+        return 'register'
+      case '/newsletter/subscribe':
+        return 'subscribe'
+      default:
+        return 'Jhasmany_Fernandez'
+    }
+  }
+
   const toggleMenu = () => {
     setIsVisible(!isVisible)
   }
@@ -47,7 +61,7 @@ const Navbar = () => {
           <Link href="/">
             <div className="animate-fade-up text-primary-content relative flex items-center gap-3 transition-all duration-300 md:static">
               <Logo />
-              <span className="text-primary-content">Jhasmany_Fernandez</span>
+              <span className="text-primary-content">{getDisplayName()}</span>
             </div>
           </Link>
         )}
