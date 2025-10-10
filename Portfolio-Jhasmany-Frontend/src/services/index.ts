@@ -9,8 +9,33 @@ const readProjectFile = async (filePath: string): Promise<Project> => {
   return JSON.parse(projectData)
 }
 
-// Internal function to fetch all projects (not cached)
-const fetchAllProjects = async (): Promise<Project[]> => {
+// Internal function to fetch all projects from API
+const fetchAllProjectsFromAPI = async (): Promise<Project[]> => {
+  try {
+    const apiUrl = process.env.API_URL || 'http://localhost:3000'
+    const response = await fetch(`${apiUrl}/api/projects`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      cache: 'no-store' // Always get fresh data for SSR
+    })
+
+    if (!response.ok) {
+      throw new Error(`API responded with status: ${response.status}`)
+    }
+
+    const data = await response.json()
+    return data.projects || []
+  } catch (error) {
+    console.error('[fetchAllProjectsFromAPI] Error:', error)
+    // Fallback to file system if API fails
+    return fetchAllProjectsFromFiles()
+  }
+}
+
+// Fallback function to fetch projects from files (existing logic)
+const fetchAllProjectsFromFiles = async (): Promise<Project[]> => {
   try {
     const projectsPath = path.join(process.cwd(), '/content/projects')
     const projectsName = await fs.readdir(projectsPath)
@@ -29,14 +54,14 @@ const fetchAllProjects = async (): Promise<Project[]> => {
     return projects
   } catch (error) {
     // Handle errors
-    console.error('[getAllProjects] Error loading projects:', error)
+    console.error('[fetchAllProjectsFromFiles] Error loading projects:', error)
     return []
   }
 }
 
-// Cached version - revalidates every hour (3600 seconds)
-const getAllProjects = unstable_cache(fetchAllProjects, ['all-projects'], {
-  revalidate: 3600, // Cache for 1 hour
+// Use API by default, with file fallback
+const getAllProjects = unstable_cache(fetchAllProjectsFromAPI, ['all-projects'], {
+  revalidate: 10, // Cache for 10 seconds to allow faster updates
   tags: ['projects'],
 })
 

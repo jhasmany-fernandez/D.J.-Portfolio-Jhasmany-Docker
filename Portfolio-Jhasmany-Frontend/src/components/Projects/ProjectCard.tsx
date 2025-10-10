@@ -1,13 +1,21 @@
 import { Project } from '@/lib/types'
 import Image from 'next/image'
-import { Earning, GithubIcon, Likes, PreviewIcon, Star, Timer } from '../../utils/icons'
+import { Earning, GithubIcon, Likes, PreviewIcon, ShoppingCartIcon, Star, Timer } from '../../utils/icons'
 
 const IconText: React.FC<{ icon: string; text: string }> = ({ icon, text }) => (
-  <li className="flex gap-2">
+  <li className="flex gap-2 items-center">
     <Image src={icon} alt={text} className="size-[18px] md:size-5" />
     <span className="text-neutral text-sm">{text}</span>
   </li>
 )
+
+// Helper functions to format statistics with descriptive text only (icons handled by IconText)
+const formatVisitors = (value: string) => `${value} Visitors`
+const formatEarned = (value: string) => `${value} Earned`
+const formatGithubStars = (value: string) => `${value} Stars`
+const formatRatings = (value: string) => `${value} Rating`
+const formatNumberOfSales = (value: string) => `${value} Sales`
+const formatSiteAge = (value: string) => `${value} old`
 
 interface ProjectCardProps {
   data: Project
@@ -18,13 +26,21 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ data }) => {
     title,
     shortDescription,
     visitors,
+    showVisitorsInPortfolio,
     earned,
+    showEarnedInPortfolio,
     ratings,
+    showRatingsInPortfolio,
     githubStars,
+    showGithubStarsInPortfolio,
     numberOfSales,
+    showNumberOfSalesInPortfolio,
     livePreview,
+    showLivePreviewInPortfolio,
     githubLink,
+    showGithubInPortfolio,
     siteAge,
+    showSiteAgeInPortfolio,
     type,
     cover,
   } = data
@@ -43,13 +59,23 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ data }) => {
             )}
           </div>
           <ul className="mt-3 flex flex-col flex-wrap gap-2 sm:flex-row sm:gap-4">
-            {(visitors || numberOfSales) && (
-              <IconText text={(visitors || numberOfSales)?.toString() || ''} icon={Likes} />
+            {visitors && showVisitorsInPortfolio && (
+              <IconText text={formatVisitors(visitors)} icon={Likes} />
             )}
-            {siteAge && <IconText text={siteAge} icon={Timer} />}
-            {earned && <IconText text={earned} icon={Earning} />}
-            {(ratings || githubStars) && (
-              <IconText text={(ratings || githubStars)?.toString() || ''} icon={Star} />
+            {numberOfSales && showNumberOfSalesInPortfolio && (
+              <IconText text={formatNumberOfSales(numberOfSales)} icon={ShoppingCartIcon} />
+            )}
+            {siteAge && showSiteAgeInPortfolio && (
+              <IconText text={formatSiteAge(siteAge)} icon={Timer} />
+            )}
+            {earned && showEarnedInPortfolio && (
+              <IconText text={formatEarned(earned)} icon={Earning} />
+            )}
+            {ratings && showRatingsInPortfolio && (
+              <IconText text={formatRatings(ratings)} icon={Star} />
+            )}
+            {githubStars && showGithubStarsInPortfolio && (
+              <IconText text={formatGithubStars(githubStars)} icon={Star} />
             )}
           </ul>
         </div>
@@ -69,7 +95,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ data }) => {
           <p className="text-[14px] font-normal md:text-base">{shortDescription}</p>
         </div>
         <div className="flex gap-5">
-          {livePreview && (
+          {livePreview && showLivePreviewInPortfolio && (
             <a
               href={livePreview}
               className="text-accent flex gap-2 text-sm underline underline-offset-[3px] transition-all duration-75 ease-linear hover:scale-105 md:text-base"
@@ -78,7 +104,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ data }) => {
               <span>Live Preview</span>
             </a>
           )}
-          {githubLink && (
+          {githubLink && showGithubInPortfolio && (
             <a
               href={githubLink}
               className="text-accent flex gap-2 text-sm underline underline-offset-[3px] transition-all duration-75 ease-linear hover:scale-105 md:text-base"

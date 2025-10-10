@@ -8,6 +8,7 @@ import NestjsIcon from '../assets/icons/nest.svg'
 import NextjsIcon from '../assets/icons/nextjs.svg'
 import NodejsIcon from '../assets/icons/nodejs.svg'
 import ReactIcon from '../assets/icons/react.svg'
+import ShoppingCartIcon from '../assets/icons/shopping-cart.svg'
 import SocketIcon from '../assets/icons/socket.svg'
 import Star from '../assets/icons/star.svg'
 import TailwindCSS from '../assets/icons/tailwind-css.svg'
@@ -181,6 +182,7 @@ const X: FC<SVGProps<SVGSVGElement>> = (props) => {
   )
 }
 
+
 const Instagram: FC<SVGProps<SVGSVGElement>> = (props) => {
   return (
     <svg
@@ -329,6 +331,7 @@ export {
   PhoneIcon,
   PreviewIcon,
   ReactIcon,
+  ShoppingCartIcon,
   SocketIcon,
   Star,
   StarIcon,
