@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, type ReactElement } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
@@ -53,7 +54,24 @@ const ContentIcon = () => (
   </svg>
 )
 
-const sidebarItems = [
+const ChevronDownIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <polyline points="6 9 12 15 18 9"></polyline>
+  </svg>
+)
+
+interface SidebarItem {
+  label: string
+  href?: string
+  icon: () => ReactElement
+  description: string
+  submenu?: {
+    label: string
+    href: string
+  }[]
+}
+
+const sidebarItems: SidebarItem[] = [
   {
     label: '_overview',
     href: '/dashboard',
@@ -80,9 +98,12 @@ const sidebarItems = [
   },
   {
     label: '_users',
-    href: '/dashboard/users',
     icon: UsersIcon,
-    description: 'Administrar usuarios'
+    description: 'Administrar usuarios',
+    submenu: [
+      { label: 'Lista de usuarios', href: '/dashboard/users' },
+      { label: 'Registrar usuario', href: '/dashboard/users/register' }
+    ]
   },
   {
     label: '_settings',
@@ -94,18 +115,80 @@ const sidebarItems = [
 
 const Sidebar = () => {
   const pathname = usePathname()
+  const [openMenus, setOpenMenus] = useState<string[]>(['_users'])
+
+  const toggleMenu = (label: string) => {
+    setOpenMenus(prev =>
+      prev.includes(label)
+        ? prev.filter(item => item !== label)
+        : [...prev, label]
+    )
+  }
 
   return (
     <aside className="bg-secondary border-border fixed left-0 top-16 h-[calc(100vh-4rem)] w-16 lg:w-64 border-r overflow-y-auto z-40 transition-all duration-300">
       <div className="p-4">
         <nav className="space-y-2">
-          {sidebarItems.map(({ label, href, icon: Icon, description }) => {
-            const isActive = pathname === href || (href !== '/dashboard' && pathname.startsWith(href))
+          {sidebarItems.map((item) => {
+            const { label, href, icon: Icon, description, submenu } = item
+            const hasSubmenu = submenu && submenu.length > 0
+            const isOpen = openMenus.includes(label)
+            const isActive = href ? (pathname === href || (href !== '/dashboard' && pathname.startsWith(href))) : false
+            const isAnySubmenuActive = hasSubmenu && submenu.some(sub => pathname === sub.href || pathname.startsWith(sub.href))
+
+            if (hasSubmenu) {
+              return (
+                <div key={label}>
+                  <button
+                    onClick={() => toggleMenu(label)}
+                    className={`w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-all duration-200 group hover:bg-primary/10 ${
+                      isAnySubmenuActive
+                        ? 'bg-primary/20 text-accent border border-accent/30'
+                        : 'text-primary-content hover:text-accent'
+                    } justify-center lg:justify-start`}
+                    title={description}
+                  >
+                    <Icon />
+                    <div className="flex flex-col flex-1 hidden lg:flex">
+                      <span className="font-medium">{label}</span>
+                      <span className="text-xs text-tertiary-content group-hover:text-tertiary-content/80">
+                        {description}
+                      </span>
+                    </div>
+                    <div className={`hidden lg:block transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}>
+                      <ChevronDownIcon />
+                    </div>
+                  </button>
+
+                  {isOpen && (
+                    <div className="ml-6 mt-1 space-y-1 hidden lg:block">
+                      {submenu.map((subItem) => {
+                        const isSubActive = pathname === subItem.href || pathname.startsWith(subItem.href)
+                        return (
+                          <Link
+                            key={subItem.href}
+                            href={subItem.href}
+                            className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-all duration-200 ${
+                              isSubActive
+                                ? 'bg-primary/10 text-accent'
+                                : 'text-tertiary-content hover:text-accent hover:bg-primary/5'
+                            }`}
+                          >
+                            <span className="text-xs">•</span>
+                            <span>{subItem.label}</span>
+                          </Link>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
+              )
+            }
 
             return (
               <Link
                 key={href}
-                href={href}
+                href={href!}
                 className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-all duration-200 group hover:bg-primary/10 ${
                   isActive
                     ? 'bg-primary/20 text-accent border border-accent/30'

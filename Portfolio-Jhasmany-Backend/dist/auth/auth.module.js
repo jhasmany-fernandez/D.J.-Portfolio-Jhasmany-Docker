@@ -18,6 +18,7 @@ const users_module_1 = require("../users/users.module");
 const jwt_strategy_1 = require("./strategies/jwt.strategy");
 const local_strategy_1 = require("./strategies/local.strategy");
 const password_reset_token_entity_1 = require("./entities/password-reset-token.entity");
+const login_attempt_entity_1 = require("./entities/login-attempt.entity");
 const email_service_1 = require("../common/services/email.service");
 let AuthModule = class AuthModule {
 };
@@ -27,7 +28,7 @@ exports.AuthModule = AuthModule = __decorate([
         imports: [
             users_module_1.UsersModule,
             passport_1.PassportModule,
-            typeorm_1.TypeOrmModule.forFeature([password_reset_token_entity_1.PasswordResetToken]),
+            typeorm_1.TypeOrmModule.forFeature([password_reset_token_entity_1.PasswordResetToken, login_attempt_entity_1.LoginAttempt]),
             jwt_1.JwtModule.registerAsync({
                 imports: [config_1.ConfigModule],
                 useFactory: async (configService) => ({

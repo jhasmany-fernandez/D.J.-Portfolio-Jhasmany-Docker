@@ -13,16 +13,57 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.EmailService = void 0;
 const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
+const nodemailer = require("nodemailer");
 let EmailService = EmailService_1 = class EmailService {
     constructor(configService) {
         this.configService = configService;
         this.logger = new common_1.Logger(EmailService_1.name);
+        this.createTransporter();
+    }
+    createTransporter() {
+        const emailHost = this.configService.get('EMAIL_HOST');
+        const emailPort = this.configService.get('EMAIL_PORT');
+        const emailUser = this.configService.get('EMAIL_USER');
+        const emailPass = this.configService.get('EMAIL_PASS');
+        if (!emailHost || !emailUser || !emailPass) {
+            this.logger.warn('Email configuration incomplete. Email sending will be simulated.');
+            this.transporter = null;
+            return;
+        }
+        this.transporter = nodemailer.createTransport({
+            host: emailHost,
+            port: parseInt(emailPort) || 587,
+            secure: false,
+            auth: {
+                user: emailUser,
+                pass: emailPass,
+            },
+            tls: {
+                rejectUnauthorized: false
+            }
+        });
+        this.logger.log('Email transporter configured successfully');
+    }
+    async sendEmail(emailContent) {
+        if (!this.transporter) {
+            this.logger.log(`[DEVELOPMENT] Email would be sent: ${JSON.stringify(emailContent, null, 2)}`);
+            return;
+        }
+        try {
+            const info = await this.transporter.sendMail(emailContent);
+            this.logger.log(`Email sent successfully: ${info.messageId}`);
+        }
+        catch (error) {
+            this.logger.error('Failed to send email:', error);
+            throw new Error('Failed to send email');
+        }
     }
     async sendPasswordResetEmail(email, resetToken, userName) {
         try {
             const frontendUrl = this.configService.get('FRONTEND_URL', 'http://localhost:3002');
             const resetUrl = `${frontendUrl}/auth/reset-password?token=${resetToken}`;
             const emailContent = {
+                from: 'jhasmany.fernandez.dev@gmail.com',
                 to: email,
                 subject: 'Password Reset Request - Portfolio Jhasmany',
                 html: `
@@ -47,9 +88,7 @@ let EmailService = EmailService_1 = class EmailService {
           </div>
         `,
             };
-            this.logger.log(`[DEVELOPMENT] Password reset email would be sent to: ${email}`);
-            this.logger.log(`[DEVELOPMENT] Reset URL: ${resetUrl}`);
-            this.logger.log(`[DEVELOPMENT] Email content: ${JSON.stringify(emailContent, null, 2)}`);
+            await this.sendEmail(emailContent);
         }
         catch (error) {
             this.logger.error(`Failed to send password reset email to ${email}:`, error);
@@ -59,6 +98,7 @@ let EmailService = EmailService_1 = class EmailService {
     async sendPasswordResetConfirmation(email, userName) {
         try {
             const emailContent = {
+                from: 'jhasmany.fernandez.dev@gmail.com',
                 to: email,
                 subject: 'Password Successfully Reset - Portfolio Jhasmany',
                 html: `
@@ -80,8 +120,7 @@ let EmailService = EmailService_1 = class EmailService {
           </div>
         `,
             };
-            this.logger.log(`[DEVELOPMENT] Password reset confirmation email would be sent to: ${email}`);
-            this.logger.log(`[DEVELOPMENT] Email content: ${JSON.stringify(emailContent, null, 2)}`);
+            await this.sendEmail(emailContent);
         }
         catch (error) {
             this.logger.error(`Failed to send password reset confirmation email to ${email}:`, error);
@@ -96,6 +135,7 @@ let EmailService = EmailService_1 = class EmailService {
                 : '#';
             const name = subscriberName || 'Valued Subscriber';
             const emailContent = {
+                from: 'jhasmany.fernandez.dev@gmail.com',
                 to: email,
                 subject: '🎉 Welcome to Jhasmany\'s Developer Newsletter!',
                 html: `
@@ -168,9 +208,7 @@ let EmailService = EmailService_1 = class EmailService {
           </div>
         `,
             };
-            this.logger.log(`[DEVELOPMENT] Newsletter welcome email would be sent to: ${email}`);
-            this.logger.log(`[DEVELOPMENT] Confirmation URL: ${confirmUrl}`);
-            this.logger.log(`[DEVELOPMENT] Email content: ${JSON.stringify(emailContent, null, 2)}`);
+            await this.sendEmail(emailContent);
         }
         catch (error) {
             this.logger.error(`Failed to send newsletter welcome email to ${email}:`, error);
@@ -188,6 +226,7 @@ let EmailService = EmailService_1 = class EmailService {
                 : '#';
             const name = subscriberName || 'Valued Client';
             const emailContent = {
+                from: 'jhasmany.fernandez.dev@gmail.com',
                 to: email,
                 subject: '📁 Your Portfolio Catalog - Latest Projects & Services',
                 html: `
@@ -293,8 +332,7 @@ let EmailService = EmailService_1 = class EmailService {
           </div>
         `,
             };
-            this.logger.log(`[DEVELOPMENT] Portfolio catalog email would be sent to: ${email}`);
-            this.logger.log(`[DEVELOPMENT] Email content: ${JSON.stringify(emailContent, null, 2)}`);
+            await this.sendEmail(emailContent);
         }
         catch (error) {
             this.logger.error(`Failed to send portfolio catalog email to ${email}:`, error);
@@ -306,6 +344,7 @@ let EmailService = EmailService_1 = class EmailService {
             const frontendUrl = this.configService.get('FRONTEND_URL', 'http://localhost:3002');
             const name = subscriberName || 'Subscriber';
             const emailContent = {
+                from: 'jhasmany.fernandez.dev@gmail.com',
                 to: email,
                 subject: '✅ Successfully Unsubscribed - Portfolio Jhasmany',
                 html: `
@@ -335,7 +374,7 @@ let EmailService = EmailService_1 = class EmailService {
           </div>
         `,
             };
-            this.logger.log(`[DEVELOPMENT] Unsubscribe confirmation email would be sent to: ${email}`);
+            await this.sendEmail(emailContent);
         }
         catch (error) {
             this.logger.error(`Failed to send unsubscribe confirmation email to ${email}:`, error);

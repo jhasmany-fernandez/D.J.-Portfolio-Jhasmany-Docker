@@ -6,15 +6,17 @@ import { LoginDto } from './dto/login.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { PasswordResetToken } from './entities/password-reset-token.entity';
+import { LoginAttempt } from './entities/login-attempt.entity';
 import { EmailService } from '../common/services/email.service';
 export declare class AuthService {
     private usersService;
     private jwtService;
     private emailService;
     private passwordResetTokenRepository;
-    constructor(usersService: UsersService, jwtService: JwtService, emailService: EmailService, passwordResetTokenRepository: Repository<PasswordResetToken>);
-    validateUser(email: string, password: string): Promise<any>;
-    login(loginDto: LoginDto): Promise<{
+    private loginAttemptRepository;
+    constructor(usersService: UsersService, jwtService: JwtService, emailService: EmailService, passwordResetTokenRepository: Repository<PasswordResetToken>, loginAttemptRepository: Repository<LoginAttempt>);
+    validateUser(email: string, password: string, ipAddress?: string, userAgent?: string): Promise<any>;
+    login(loginDto: LoginDto, ipAddress?: string, userAgent?: string): Promise<{
         access_token: string;
         user: {
             id: any;
@@ -44,4 +46,10 @@ export declare class AuthService {
         valid: boolean;
         message: string;
     }>;
+    recordLoginAttempt(email: string, ipAddress?: string, userAgent?: string, successful?: boolean, failureReason?: string, userId?: string): Promise<void>;
+    getRecentFailedAttempts(email: string, ipAddress?: string): Promise<number>;
+    isAccountLocked(email: string, ipAddress?: string): Promise<boolean>;
+    lockAccount(email: string, ipAddress?: string): Promise<void>;
+    resetFailedAttempts(email: string, ipAddress?: string): Promise<void>;
+    unlockAccount(email: string): Promise<void>;
 }

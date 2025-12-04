@@ -7,13 +7,13 @@ class SeedAdminUser1735723300000 {
         this.name = 'SeedAdminUser1735723300000';
     }
     async up(queryRunner) {
-        const hashedPassword = await bcrypt.hash('Admin123!', 10);
+        const hashedPassword = await bcrypt.hash('Dev2307***', 10);
         await queryRunner.query(`
       INSERT INTO "users" ("id", "email", "name", "password", "role", "isActive", "createdAt", "updatedAt")
       VALUES (
         uuid_generate_v4(),
-        'admin@example.com',
-        'Administrator',
+        'jhasmany.fernandez.dev@gmail.com',
+        'Jhasmany Fernández',
         '${hashedPassword}',
         'admin',
         true,
@@ -42,13 +42,13 @@ class SeedAdminUser1735723300000 {
         now(),
         now(),
         u.id
-      FROM "users" u WHERE u.email = 'admin@example.com'
+      FROM "users" u WHERE u.email = 'jhasmany.fernandez.dev@gmail.com'
       LIMIT 1
     `);
     }
     async down(queryRunner) {
         await queryRunner.query(`DELETE FROM "projects" WHERE "title" = 'Portfolio Website'`);
-        await queryRunner.query(`DELETE FROM "users" WHERE "email" = 'admin@example.com'`);
+        await queryRunner.query(`DELETE FROM "users" WHERE "email" = 'jhasmany.fernandez.dev@gmail.com'`);
     }
 }
 exports.SeedAdminUser1735723300000 = SeedAdminUser1735723300000;

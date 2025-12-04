@@ -35,7 +35,7 @@ let NewsletterService = NewsletterService_1 = class NewsletterService {
             if (existingSubscription && existingSubscription.isActive) {
                 return {
                     success: true,
-                    message: 'You are already subscribed to our newsletter.',
+                    message: 'Este email ya se encontraba registrado en nuestro boletín.',
                     alreadySubscribed: true,
                 };
             }
