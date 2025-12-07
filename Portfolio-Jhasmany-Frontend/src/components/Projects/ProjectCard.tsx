@@ -1,5 +1,8 @@
+'use client'
+
 import { Project } from '@/lib/types'
 import Image from 'next/image'
+import { useState } from 'react'
 import { Earning, GithubIcon, Likes, PreviewIcon, ShoppingCartIcon, Star, Timer } from '../../utils/icons'
 
 const IconText: React.FC<{ icon: string; text: string }> = ({ icon, text }) => (
@@ -22,6 +25,8 @@ interface ProjectCardProps {
 }
 
 const ProjectCard: React.FC<ProjectCardProps> = ({ data }) => {
+  const [isImageOpen, setIsImageOpen] = useState(false)
+
   const {
     title,
     shortDescription,
@@ -80,13 +85,13 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ data }) => {
           </ul>
         </div>
         {cover && (
-          <figure className="flex justify-end overflow-hidden">
+          <figure className="flex justify-end overflow-hidden cursor-pointer" onClick={() => setIsImageOpen(true)}>
             <Image
               src={cover}
               width={150}
               height={80}
               alt="Project Cover"
-              className="h-[80px] w-[150px] rounded-md object-cover shadow-[0px_1.66px_3.74px_-1.25px_#18274B1F]"
+              className="h-[80px] w-[150px] rounded-md object-cover shadow-[0px_1.66px_3.74px_-1.25px_#18274B1F] hover:opacity-80 transition-opacity"
             />
           </figure>
         )}
@@ -117,6 +122,32 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ data }) => {
           )}
         </div>
       </div>
+
+      {/* Lightbox Modal */}
+      {isImageOpen && cover && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90 p-4"
+          onClick={() => setIsImageOpen(false)}
+        >
+          <div className="relative max-w-7xl max-h-[90vh]">
+            <button
+              onClick={() => setIsImageOpen(false)}
+              className="absolute -top-10 right-0 text-white text-2xl hover:text-gray-300 transition-colors"
+              aria-label="Cerrar"
+            >
+              ✕
+            </button>
+            <Image
+              src={cover}
+              width={1200}
+              height={800}
+              alt={title}
+              className="max-h-[90vh] w-auto object-contain rounded-lg"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+        </div>
+      )}
     </div>
   )
 }

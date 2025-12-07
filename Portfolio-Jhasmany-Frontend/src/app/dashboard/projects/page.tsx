@@ -16,6 +16,14 @@ export default function ProjectsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [showCreateForm, setShowCreateForm] = useState(false)
+  const [createForm, setCreateForm] = useState<Partial<Project>>({
+    title: '',
+    description: '',
+    shortDescription: '',
+    technologies: '',
+    type: 'Personal',
+    isPublished: false
+  })
   const [editingProject, setEditingProject] = useState<ProjectWithId | null>(null)
   const [editForm, setEditForm] = useState<ProjectWithId | null>(null)
   const [saving, setSaving] = useState(false)
@@ -139,6 +147,87 @@ export default function ProjectsPage() {
         ...editForm,
         [field]: value
       })
+    }
+  }
+
+  // Update create form field
+  const updateCreateFormField = (field: string, value: string | number | boolean) => {
+    setCreateForm({
+      ...createForm,
+      [field]: value
+    })
+  }
+
+  // Reset create form
+  const resetCreateForm = () => {
+    setCreateForm({
+      title: '',
+      description: '',
+      shortDescription: '',
+      technologies: '',
+      type: 'Personal',
+      isPublished: false
+    })
+    setSelectedFile(null)
+    setPreviewUrl(null)
+  }
+
+  // Create new project
+  const createProject = async () => {
+    console.log('Creating project:', createForm)
+    setSaving(true)
+    try {
+      let imageUrl = ''
+
+      // Upload image first if a file was selected
+      if (selectedFile) {
+        imageUrl = await uploadImage()
+        if (!imageUrl) {
+          toast.error('Error al subir la imagen. Por favor, intenta de nuevo.')
+          setSaving(false)
+          return
+        }
+      }
+
+      // Prepare project data
+      const projectData = {
+        ...createForm,
+        cover: imageUrl || createForm.cover || '',
+        // Convert technologies from string to array (backend expects array)
+        technologies: createForm.technologies ? [createForm.technologies] : []
+      }
+
+      console.log('Project data being sent to API:', projectData)
+      console.log('Technologies type:', typeof projectData.technologies, 'Is array:', Array.isArray(projectData.technologies))
+
+      const response = await fetch('/api/projects', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(projectData)
+      })
+
+      console.log('Create response status:', response.status)
+
+      if (response.ok) {
+        const result = await response.json()
+        console.log('Create result:', result)
+
+        await fetchProjects() // Refresh list
+        setShowCreateForm(false)
+        resetCreateForm()
+        toast.success('Proyecto creado exitosamente')
+      } else {
+        const errorText = await response.text()
+        console.error('Create error response:', errorText)
+        toast.error('Error al crear el proyecto')
+      }
+    } catch (error) {
+      console.error('Error creating project:', error)
+      toast.error('Error al crear el proyecto')
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -398,20 +487,423 @@ export default function ProjectsPage() {
         </div>
       </div>
 
-      {/* TODO: Add Create/Edit forms */}
+      {/* Create Project Form */}
       {showCreateForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-secondary border border-border rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+          <div className="bg-secondary border border-border rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <h3 className="text-xl font-semibold text-neutral mb-4">Crear Nuevo Proyecto</h3>
-            <p className="text-tertiary-content mb-4">
-              Funcionalidad de creación/edición próximamente...
-            </p>
-            <button
-              onClick={() => setShowCreateForm(false)}
-              className="bg-accent hover:bg-accent/80 text-secondary px-4 py-2 rounded-lg transition-colors duration-200"
-            >
-              Cerrar
-            </button>
+
+            <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); createProject(); }}>
+              {/* Title */}
+              <div>
+                <label className="block text-sm font-medium text-neutral mb-1">
+                  Título del Proyecto *
+                </label>
+                <input
+                  type="text"
+                  value={createForm.title}
+                  onChange={(e) => updateCreateFormField('title', e.target.value)}
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-primary text-neutral focus:outline-none focus:ring-2 focus:ring-accent"
+                  required
+                />
+              </div>
+
+              {/* Short Description */}
+              <div>
+                <label className="block text-sm font-medium text-neutral mb-1">
+                  Descripción Corta *
+                </label>
+                <textarea
+                  value={createForm.shortDescription}
+                  onChange={(e) => updateCreateFormField('shortDescription', e.target.value)}
+                  rows={3}
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-primary text-neutral focus:outline-none focus:ring-2 focus:ring-accent"
+                  required
+                />
+              </div>
+
+              {/* Priority and Type */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-neutral mb-1">
+                    Prioridad *
+                  </label>
+                  <input
+                    type="number"
+                    value={createForm.priority || 1}
+                    onChange={(e) => updateCreateFormField('priority', parseInt(e.target.value))}
+                    min="1"
+                    className="w-full px-3 py-2 border border-border rounded-lg bg-primary text-neutral focus:outline-none focus:ring-2 focus:ring-accent"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral mb-1">
+                    Tipo de Proyecto *
+                  </label>
+                  <select
+                    value={createForm.type}
+                    onChange={(e) => updateCreateFormField('type', e.target.value)}
+                    className="w-full px-3 py-2 border border-border rounded-lg bg-primary text-neutral focus:outline-none focus:ring-2 focus:ring-accent"
+                    required
+                  >
+                    <option value="Client Work 🙍‍♂️">Client Work 🙍‍♂️</option>
+                    <option value="New 🔥">New 🔥</option>
+                    <option value="Free 🔥">Free 🔥</option>
+                    <option value="Personal">Personal</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Cover Image Upload */}
+              <div>
+                <label className="block text-sm font-medium text-neutral mb-2">
+                  Imagen de Portada
+                </label>
+
+                {/* File Upload */}
+                <div className="mb-3">
+                  <label className="block text-sm text-tertiary-content mb-2">
+                    Subir imagen:
+                  </label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileSelect}
+                    className="w-full px-3 py-2 border border-border rounded-lg bg-primary text-neutral focus:outline-none focus:ring-2 focus:ring-accent file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-accent file:text-secondary hover:file:bg-accent/80"
+                  />
+                  {previewUrl && (
+                    <div className="mt-3">
+                      <img
+                        src={previewUrl}
+                        alt="Vista previa"
+                        className="max-w-xs max-h-48 rounded-lg border border-border"
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Live Preview and GitHub */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-neutral mb-1">
+                    URL de Vista Previa
+                  </label>
+                  <input
+                    type="url"
+                    value={createForm.livePreview || ''}
+                    onChange={(e) => updateCreateFormField('livePreview', e.target.value)}
+                    className="w-full px-3 py-2 border border-border rounded-lg bg-primary text-neutral focus:outline-none focus:ring-2 focus:ring-accent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral mb-1">
+                    URL de GitHub
+                  </label>
+                  <input
+                    type="url"
+                    value={createForm.githubLink || ''}
+                    onChange={(e) => updateCreateFormField('githubLink', e.target.value)}
+                    className="w-full px-3 py-2 border border-border rounded-lg bg-primary text-neutral focus:outline-none focus:ring-2 focus:ring-accent"
+                  />
+                </div>
+              </div>
+
+              {/* Live Preview Portfolio Visibility Toggle */}
+              {createForm.livePreview && (
+                <div className="bg-primary border border-border rounded-lg p-4">
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      id="createShowLivePreviewInPortfolio"
+                      checked={createForm.showLivePreviewInPortfolio || false}
+                      onChange={(e) => updateCreateFormField('showLivePreviewInPortfolio', e.target.checked)}
+                      className="w-4 h-4 text-accent bg-secondary border-border rounded focus:ring-accent focus:ring-2"
+                    />
+                    <label htmlFor="createShowLivePreviewInPortfolio" className="text-sm font-medium text-neutral">
+                      Mostrar enlace de Vista Previa en el portfolio público
+                    </label>
+                  </div>
+                  <p className="text-xs text-tertiary-content mt-1 ml-7">
+                    {createForm.showLivePreviewInPortfolio
+                      ? "✅ El enlace de Vista Previa será visible en tu portfolio público"
+                      : "❌ El enlace de Vista Previa solo será visible en el dashboard"
+                    }
+                  </p>
+                </div>
+              )}
+
+              {/* GitHub Portfolio Visibility Toggle */}
+              {createForm.githubLink && (
+                <div className="bg-primary border border-border rounded-lg p-4">
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      id="createShowGithubInPortfolio"
+                      checked={createForm.showGithubInPortfolio || false}
+                      onChange={(e) => updateCreateFormField('showGithubInPortfolio', e.target.checked)}
+                      className="w-4 h-4 text-accent bg-secondary border-border rounded focus:ring-accent focus:ring-2"
+                    />
+                    <label htmlFor="createShowGithubInPortfolio" className="text-sm font-medium text-neutral">
+                      Mostrar enlace de GitHub en el portfolio público
+                    </label>
+                  </div>
+                  <p className="text-xs text-tertiary-content mt-1 ml-7">
+                    {createForm.showGithubInPortfolio
+                      ? "✅ El enlace de GitHub será visible en tu portfolio público"
+                      : "❌ El enlace de GitHub solo será visible en el dashboard"
+                    }
+                  </p>
+                </div>
+              )}
+
+              {/* Statistics */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-neutral mb-1">
+                    👥 Visitantes del Sitio
+                  </label>
+                  <input
+                    type="text"
+                    value={createForm.visitors || ''}
+                    onChange={(e) => updateCreateFormField('visitors', e.target.value)}
+                    placeholder="ej: 8K, 1.2M"
+                    className="w-full px-3 py-2 border border-border rounded-lg bg-primary text-neutral focus:outline-none focus:ring-2 focus:ring-accent"
+                  />
+                  <p className="text-xs text-tertiary-content mt-1">Se mostrará como: "👥 [valor] Visitors"</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral mb-1">
+                    💰 Ganancias del Proyecto
+                  </label>
+                  <input
+                    type="text"
+                    value={createForm.earned || ''}
+                    onChange={(e) => updateCreateFormField('earned', e.target.value)}
+                    placeholder="ej: $400, €1,200"
+                    className="w-full px-3 py-2 border border-border rounded-lg bg-primary text-neutral focus:outline-none focus:ring-2 focus:ring-accent"
+                  />
+                  <p className="text-xs text-tertiary-content mt-1">Se mostrará como: "💰 [valor] Earned"</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral mb-1">
+                    ⭐ Estrellas en GitHub
+                  </label>
+                  <input
+                    type="text"
+                    value={createForm.githubStars || ''}
+                    onChange={(e) => updateCreateFormField('githubStars', e.target.value)}
+                    placeholder="ej: 40, 156"
+                    className="w-full px-3 py-2 border border-border rounded-lg bg-primary text-neutral focus:outline-none focus:ring-2 focus:ring-accent"
+                  />
+                  <p className="text-xs text-tertiary-content mt-1">Se mostrará como: "⭐ [valor] Stars"</p>
+                </div>
+              </div>
+
+              {/* Additional Fields */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-neutral mb-1">
+                    ⏰ Antigüedad del Sitio
+                  </label>
+                  <input
+                    type="text"
+                    value={createForm.siteAge || ''}
+                    onChange={(e) => updateCreateFormField('siteAge', e.target.value)}
+                    placeholder="ej: 1 month, 2 years"
+                    className="w-full px-3 py-2 border border-border rounded-lg bg-primary text-neutral focus:outline-none focus:ring-2 focus:ring-accent"
+                  />
+                  <p className="text-xs text-tertiary-content mt-1">Se mostrará como: "⏰ [valor] old"</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral mb-1">
+                    ⭐ Calificaciones de Usuarios
+                  </label>
+                  <input
+                    type="text"
+                    value={createForm.ratings || ''}
+                    onChange={(e) => updateCreateFormField('ratings', e.target.value)}
+                    placeholder="ej: 4.5/5, 4.8"
+                    className="w-full px-3 py-2 border border-border rounded-lg bg-primary text-neutral focus:outline-none focus:ring-2 focus:ring-accent"
+                  />
+                  <p className="text-xs text-tertiary-content mt-1">Se mostrará como: "⭐ [valor] Rating"</p>
+                </div>
+              </div>
+
+              {/* Number of Sales */}
+              <div>
+                <label className="block text-sm font-medium text-neutral mb-1">
+                  🛒 Número de Ventas
+                </label>
+                <input
+                  type="text"
+                  value={createForm.numberOfSales || ''}
+                  onChange={(e) => updateCreateFormField('numberOfSales', e.target.value)}
+                  placeholder="ej: 138, 250+"
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-primary text-neutral focus:outline-none focus:ring-2 focus:ring-accent"
+                />
+                <p className="text-xs text-tertiary-content mt-1">Se mostrará como: "🛒 [valor] Sales"</p>
+              </div>
+
+              {/* Statistics Visibility Toggles */}
+              <div className="bg-primary border border-border rounded-lg p-4">
+                <h4 className="text-sm font-semibold text-neutral mb-4">Controles de Visibilidad en Portfolio Público</h4>
+                <div className="space-y-3">
+
+                  {/* Visitors Toggle */}
+                  {createForm.visitors && (
+                    <div className="flex items-start gap-3 p-3 bg-secondary rounded-lg border border-border">
+                      <input
+                        type="checkbox"
+                        id="createShowVisitorsInPortfolio"
+                        checked={createForm.showVisitorsInPortfolio || false}
+                        onChange={(e) => updateCreateFormField('showVisitorsInPortfolio', e.target.checked)}
+                        className="w-4 h-4 text-accent bg-primary border-border rounded focus:ring-accent focus:ring-2 mt-0.5"
+                      />
+                      <div className="flex-1">
+                        <label htmlFor="createShowVisitorsInPortfolio" className="text-sm font-medium text-neutral block">
+                          👥 Mostrar Visitantes
+                        </label>
+                        <p className="text-xs text-tertiary-content">
+                          Muestra: "👥 [valor] Visitors" en el portfolio público
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Earnings Toggle */}
+                  {createForm.earned && (
+                    <div className="flex items-start gap-3 p-3 bg-secondary rounded-lg border border-border">
+                      <input
+                        type="checkbox"
+                        id="createShowEarnedInPortfolio"
+                        checked={createForm.showEarnedInPortfolio || false}
+                        onChange={(e) => updateCreateFormField('showEarnedInPortfolio', e.target.checked)}
+                        className="w-4 h-4 text-accent bg-primary border-border rounded focus:ring-accent focus:ring-2 mt-0.5"
+                      />
+                      <div className="flex-1">
+                        <label htmlFor="createShowEarnedInPortfolio" className="text-sm font-medium text-neutral block">
+                          💰 Mostrar Ganancias
+                        </label>
+                        <p className="text-xs text-tertiary-content">
+                          Muestra: "💰 [valor] Earned" en el portfolio público
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* GitHub Stars Toggle */}
+                  {createForm.githubStars && (
+                    <div className="flex items-start gap-3 p-3 bg-secondary rounded-lg border border-border">
+                      <input
+                        type="checkbox"
+                        id="createShowGithubStarsInPortfolio"
+                        checked={createForm.showGithubStarsInPortfolio || false}
+                        onChange={(e) => updateCreateFormField('showGithubStarsInPortfolio', e.target.checked)}
+                        className="w-4 h-4 text-accent bg-primary border-border rounded focus:ring-accent focus:ring-2 mt-0.5"
+                      />
+                      <div className="flex-1">
+                        <label htmlFor="createShowGithubStarsInPortfolio" className="text-sm font-medium text-neutral block">
+                          ⭐ Mostrar Estrellas GitHub
+                        </label>
+                        <p className="text-xs text-tertiary-content">
+                          Muestra: "⭐ [valor] Stars" en el portfolio público
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Ratings Toggle */}
+                  {createForm.ratings && (
+                    <div className="flex items-start gap-3 p-3 bg-secondary rounded-lg border border-border">
+                      <input
+                        type="checkbox"
+                        id="createShowRatingsInPortfolio"
+                        checked={createForm.showRatingsInPortfolio || false}
+                        onChange={(e) => updateCreateFormField('showRatingsInPortfolio', e.target.checked)}
+                        className="w-4 h-4 text-accent bg-primary border-border rounded focus:ring-accent focus:ring-2 mt-0.5"
+                      />
+                      <div className="flex-1">
+                        <label htmlFor="createShowRatingsInPortfolio" className="text-sm font-medium text-neutral block">
+                          ⭐ Mostrar Calificaciones
+                        </label>
+                        <p className="text-xs text-tertiary-content">
+                          Muestra: "⭐ [valor] Rating" en el portfolio público
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Number of Sales Toggle */}
+                  {createForm.numberOfSales && (
+                    <div className="flex items-start gap-3 p-3 bg-secondary rounded-lg border border-border">
+                      <input
+                        type="checkbox"
+                        id="createShowNumberOfSalesInPortfolio"
+                        checked={createForm.showNumberOfSalesInPortfolio || false}
+                        onChange={(e) => updateCreateFormField('showNumberOfSalesInPortfolio', e.target.checked)}
+                        className="w-4 h-4 text-accent bg-primary border-border rounded focus:ring-accent focus:ring-2 mt-0.5"
+                      />
+                      <div className="flex-1">
+                        <label htmlFor="createShowNumberOfSalesInPortfolio" className="text-sm font-medium text-neutral block">
+                          🛒 Mostrar Ventas
+                        </label>
+                        <p className="text-xs text-tertiary-content">
+                          Muestra: "🛒 [valor] Sales" en el portfolio público
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Site Age Toggle */}
+                  {createForm.siteAge && (
+                    <div className="flex items-start gap-3 p-3 bg-secondary rounded-lg border border-border">
+                      <input
+                        type="checkbox"
+                        id="createShowSiteAgeInPortfolio"
+                        checked={createForm.showSiteAgeInPortfolio || false}
+                        onChange={(e) => updateCreateFormField('showSiteAgeInPortfolio', e.target.checked)}
+                        className="w-4 h-4 text-accent bg-primary border-border rounded focus:ring-accent focus:ring-2 mt-0.5"
+                      />
+                      <div className="flex-1">
+                        <label htmlFor="createShowSiteAgeInPortfolio" className="text-sm font-medium text-neutral block">
+                          ⏰ Mostrar Antigüedad
+                        </label>
+                        <p className="text-xs text-tertiary-content">
+                          Muestra: "⏰ [valor] old" en el portfolio público
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                </div>
+                <p className="text-xs text-tertiary-content mt-4 p-3 bg-accent/10 rounded-lg">
+                  💡 Solo las estadísticas marcadas serán visibles en tu portfolio público. Las no marcadas permanecerán privadas en el dashboard.
+                </p>
+              </div>
+
+              {/* Buttons */}
+              <div className="flex gap-4 pt-4">
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="bg-accent hover:bg-accent/80 disabled:opacity-50 text-secondary px-6 py-2 rounded-lg transition-colors duration-200"
+                >
+                  {saving ? 'Creando...' : 'Crear Proyecto'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowCreateForm(false)
+                    resetCreateForm()
+                  }}
+                  className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg transition-colors duration-200"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
