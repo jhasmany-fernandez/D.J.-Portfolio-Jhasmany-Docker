@@ -1,35 +1,50 @@
 import { Project } from '@/lib/types'
-import { promises as fs } from 'fs'
 import { NextResponse } from 'next/server'
 import { revalidateTag } from 'next/cache'
-import path from 'path'
 
-const projectsPath = path.join(process.cwd(), '/content/projects')
+// Use Docker service name for internal communication (SSR)
+// Fall back to localhost for client-side or development
+const getBackendURL = () => {
+  // Check if we're running in server-side (Node.js) context
+  if (typeof window === 'undefined') {
+    // Server-side: use Docker service name
+    return process.env.API_URL || 'http://backend:3001'
+  }
+  // Client-side: use public URL
+  return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+}
 
 // GET all projects
 export async function GET() {
   try {
-    const projectFiles = await fs.readdir(projectsPath)
+    const backendURL = getBackendURL()
+    console.log('Fetching projects from backend API:', `${backendURL}/api/projects`)
 
-    const projects = await Promise.all(
-      projectFiles.map(async (filename) => {
-        const filePath = path.join(projectsPath, filename)
-        const projectData = await fs.readFile(filePath, 'utf8')
-        const project = JSON.parse(projectData)
-        return {
-          id: filename.replace('.json', ''),
-          ...project
-        }
-      })
-    )
+    const response = await fetch(`${backendURL}/api/projects`, {
+      cache: 'no-store', // Disable caching for real-time data
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('Backend API error response:', errorText)
+      throw new Error(`Backend API error: ${response.status}`)
+    }
+
+    const projects = await response.json()
+    console.log('Projects received from backend:', Array.isArray(projects) ? projects.length : 'not an array')
 
     // Sort by priority
-    projects.sort((a, b) => a.priority - b.priority)
+    if (Array.isArray(projects)) {
+      projects.sort((a, b) => (a.priority || 0) - (b.priority || 0))
+      return NextResponse.json({ projects: projects })
+    }
 
-    return NextResponse.json({ projects })
+    // Backend might return projects directly or wrapped
+    return NextResponse.json({ projects: projects || [] })
   } catch (error) {
-    console.error('Error fetching projects:', error)
-    return NextResponse.json({ error: 'Failed to fetch projects' }, { status: 500 })
+    console.error('Error fetching projects from backend:', error)
+    const message = error instanceof Error ? error.message : 'Unknown error'
+    return NextResponse.json({ error: 'Failed to fetch projects', details: message }, { status: 500 })
   }
 }
 
@@ -38,32 +53,40 @@ export async function POST(request: Request) {
   try {
     const body = await request.json()
     const project: Project = body
+    const backendURL = getBackendURL()
 
-    // Generate ID based on title
-    const id = project.title.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-')
-    const filename = `${id}.json`
-    const filePath = path.join(projectsPath, filename)
+    console.log('Creating project on backend:', project.title)
 
-    // Check if project already exists
-    try {
-      await fs.access(filePath)
-      return NextResponse.json({ error: 'Project already exists' }, { status: 409 })
-    } catch {
-      // File doesn't exist, continue
+    // TODO: Add authentication token from session
+    const response = await fetch(`${backendURL}/api/projects`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        // TODO: Add Authorization header with JWT token
+        // 'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify(project),
+    })
+
+    if (!response.ok) {
+      const error = await response.json()
+      console.error('Backend error:', error)
+      return NextResponse.json({ error: error.message || 'Failed to create project' }, { status: response.status })
     }
 
-    // Save project
-    await fs.writeFile(filePath, JSON.stringify(project, null, 2))
+    const result = await response.json()
+    console.log('Project created successfully:', result)
 
-    // Revalidate cache to show changes immediately
+    // Invalidate the projects cache to show new project immediately
     revalidateTag('projects')
 
     return NextResponse.json({
       message: 'Project created successfully',
-      project: { id, ...project }
+      project: result
     })
   } catch (error) {
     console.error('Error creating project:', error)
-    return NextResponse.json({ error: 'Failed to create project' }, { status: 500 })
+    const message = error instanceof Error ? error.message : 'Unknown error'
+    return NextResponse.json({ error: 'Failed to create project', details: message }, { status: 500 })
   }
 }

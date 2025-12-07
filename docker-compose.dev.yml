@@ -29,6 +29,8 @@ services:
       - NODE_ENV=development
       - NEXT_TELEMETRY_DISABLED=1
       - WATCHPACK_POLLING=true
+      - NEXT_PUBLIC_API_URL=http://localhost:3001
+      - API_URL=http://backend:3001
     depends_on:
       - backend
     networks:
@@ -41,18 +43,42 @@ services:
     volumes:
       - ./Portfolio-Jhasmany-Backend:/app
       - /app/node_modules
-    expose:
-      - "3001"
+    ports:
+      - "3001:3001"
     environment:
       - NODE_ENV=development
       - PORT=3001
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=Postgres2307***
+      - DB_NAME=portfolio_db
+      - JWT_SECRET=your-super-secret-jwt-key-change-in-production
+      - JWT_EXPIRES_IN=7d
+      - FRONTEND_URL=http://localhost:3002
+    depends_on:
+      - postgres
     networks:
       - portfolio-network
+
+  postgres:
+    image: postgres:15-alpine
+    ports:
+      - "5434:5432"
+    environment:
+      - POSTGRES_DB=portfolio_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=Postgres2307***
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - portfolio-network
+    restart: unless-stopped
 
 networks:
   portfolio-network:
     driver: bridge
 
 volumes:
-  backend_data:
+  postgres_data:
     driver: local

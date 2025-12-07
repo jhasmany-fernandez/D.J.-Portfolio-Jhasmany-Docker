@@ -26,7 +26,7 @@ let DatabaseConfig = class DatabaseConfig {
             password: this.configService.get('DB_PASSWORD', 'portfolio_password'),
             database: this.configService.get('DB_NAME', 'portfolio_db'),
             entities: [__dirname + '/../**/*.entity{.ts,.js}'],
-            synchronize: false,
+            synchronize: true,
             logging: !isProduction,
             migrations: [__dirname + '/../migrations/*{.ts,.js}'],
             migrationsRun: true,

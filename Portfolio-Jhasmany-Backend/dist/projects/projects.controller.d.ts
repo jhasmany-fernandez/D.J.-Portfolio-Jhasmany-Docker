@@ -5,7 +5,7 @@ export declare class ProjectsController {
     private readonly projectsService;
     constructor(projectsService: ProjectsService);
     create(createProjectDto: CreateProjectDto, req: any): Promise<import("./entities/project.entity").Project>;
-    findAll(published?: boolean): Promise<import("./entities/project.entity").Project[]>;
+    findAll(published?: string): Promise<import("./entities/project.entity").Project[]>;
     findMy(req: any): Promise<import("./entities/project.entity").Project[]>;
     findOne(id: string): Promise<import("./entities/project.entity").Project>;
     update(id: string, updateProjectDto: UpdateProjectDto): Promise<import("./entities/project.entity").Project>;

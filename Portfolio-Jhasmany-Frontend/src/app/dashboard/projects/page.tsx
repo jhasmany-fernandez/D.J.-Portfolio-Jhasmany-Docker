@@ -92,12 +92,15 @@ export default function ProjectsPage() {
     console.log('Saving project:', editForm)
     setSaving(true)
     try {
+      // Filter out fields that shouldn't be sent to the backend
+      const { id, createdAt, updatedAt, authorId, author, ...updateData } = editForm as any
+
       const response = await fetch(`/api/projects/${editingProject.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(editForm)
+        body: JSON.stringify(updateData)
       })
 
       console.log('Save response status:', response.status)

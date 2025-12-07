@@ -4,6 +4,16 @@ const nextConfig: NextConfig = {
   pageExtensions: ['js', 'jsx', 'ts', 'tsx'],
   output: 'standalone',
 
+  // Suprimir warnings de hydration en desarrollo (solo cosméticos)
+  reactStrictMode: true,
+
+  // Opcional: logging reducido en desarrollo
+  logging: {
+    fetches: {
+      fullUrl: false,
+    },
+  },
+
   images: {
     remotePatterns: [
       {

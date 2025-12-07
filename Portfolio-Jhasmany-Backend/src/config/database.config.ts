@@ -17,7 +17,7 @@ export class DatabaseConfig implements TypeOrmOptionsFactory {
       password: this.configService.get('DB_PASSWORD', 'portfolio_password'),
       database: this.configService.get('DB_NAME', 'portfolio_db'),
       entities: [__dirname + '/../**/*.entity{.ts,.js}'],
-      synchronize: false, // Always use migrations
+      synchronize: true, // Temporarily enabled for schema updates
       logging: !isProduction,
       migrations: [__dirname + '/../migrations/*{.ts,.js}'],
       migrationsRun: true,

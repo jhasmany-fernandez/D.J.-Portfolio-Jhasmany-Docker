@@ -3,16 +3,22 @@ import { promises as fs } from 'fs'
 import { unstable_cache } from 'next/cache'
 import path from 'path'
 
-// Function to read project file
-const readProjectFile = async (filePath: string): Promise<Project> => {
-  const projectData = await fs.readFile(filePath, 'utf8')
-  return JSON.parse(projectData)
-}
+// Note: fs and path imports still needed for testimonials
 
 // Internal function to fetch all projects from API
 const fetchAllProjectsFromAPI = async (): Promise<Project[]> => {
   try {
-    const apiUrl = process.env.API_URL || 'http://localhost:3000'
+    // Check if we're running server-side (inside Docker container)
+    const isServer = typeof window === 'undefined'
+
+    // Server-side: call backend directly using Docker service name
+    // Client-side: use the frontend's API route proxy
+    const apiUrl = isServer
+      ? (process.env.API_URL || 'http://backend:3001')  // Direct backend call during SSR
+      : (process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3002') // Frontend proxy for client
+
+    console.log('[fetchAllProjectsFromAPI] Fetching from:', `${apiUrl}/api/projects`, 'isServer:', isServer)
+
     const response = await fetch(`${apiUrl}/api/projects`, {
       method: 'GET',
       headers: {
@@ -22,48 +28,32 @@ const fetchAllProjectsFromAPI = async (): Promise<Project[]> => {
     })
 
     if (!response.ok) {
+      const errorText = await response.text()
+      console.error('[fetchAllProjectsFromAPI] API error:', response.status, errorText)
       throw new Error(`API responded with status: ${response.status}`)
     }
 
     const data = await response.json()
-    return data.projects || []
-  } catch (error) {
-    console.error('[fetchAllProjectsFromAPI] Error:', error)
-    // Fallback to file system if API fails
-    return fetchAllProjectsFromFiles()
-  }
-}
 
-// Fallback function to fetch projects from files (existing logic)
-const fetchAllProjectsFromFiles = async (): Promise<Project[]> => {
-  try {
-    const projectsPath = path.join(process.cwd(), '/content/projects')
-    const projectsName = await fs.readdir(projectsPath)
+    // Handle different response formats:
+    // - Backend returns array directly: [{...}]
+    // - Frontend API route returns object: {projects: [{...}]}
+    const projects = Array.isArray(data) ? data : (data.projects || [])
 
-    const projects = await Promise.all(
-      projectsName.map(async (projectName) => {
-        const filePath = path.join(projectsPath, projectName)
-        const projectDetails = await readProjectFile(filePath)
-        return projectDetails
-      }),
-    )
-
-    // Sort projects by priority
-    projects.sort((a, b) => a.priority - b.priority)
-
+    console.log('[fetchAllProjectsFromAPI] Received projects:', projects.length)
     return projects
   } catch (error) {
-    // Handle errors
-    console.error('[fetchAllProjectsFromFiles] Error loading projects:', error)
+    console.error('[fetchAllProjectsFromAPI] Fatal error - NO FALLBACK:', error)
+    // NO FALLBACK - Force using the database
     return []
   }
 }
 
-// Use API by default, with file fallback
-const getAllProjects = unstable_cache(fetchAllProjectsFromAPI, ['all-projects'], {
-  revalidate: 10, // Cache for 10 seconds to allow faster updates
-  tags: ['projects'],
-})
+// REMOVED: Fallback function - We now always use the database
+// const fetchAllProjectsFromFiles = async (): Promise<Project[]> => { ... }
+
+// NO CACHE - Always fetch fresh data from database
+const getAllProjects = fetchAllProjectsFromAPI
 
 // Internal function to fetch all testimonials (not cached)
 const fetchAllTestimonials = async (): Promise<Testimonial[]> => {
