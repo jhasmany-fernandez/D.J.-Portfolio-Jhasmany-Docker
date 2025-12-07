@@ -6,37 +6,48 @@ import * as compression from 'compression';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { join } from 'path';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, {
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     logger: ['error', 'warn', 'log', 'debug', 'verbose'],
+  });
+
+  // Serve static files from uploads directory
+  app.useStaticAssets(join(__dirname, '..', 'uploads'), {
+    prefix: '/uploads/',
+  });
+
+  // Enhanced CORS with security - MUST be before helmet
+  app.enableCors({
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+      // Allow any origin in development
+      callback(null, true);
+    },
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Cache-Control', 'Pragma'],
+    credentials: true,
+    maxAge: 86400, // 24 hours
   });
 
   // Security headers
   app.use(helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
         styleSrc: ["'self'", "'unsafe-inline'"],
         scriptSrc: ["'self'"],
-        imgSrc: ["'self'", "data:", "https:"],
+        imgSrc: ["'self'", "data:", "https:", "http:"],
       },
     },
   }));
 
   // Compression
   app.use(compression());
-
-  // Enhanced CORS with security
-  app.enableCors({
-    origin: process.env.NODE_ENV === 'production'
-      ? ['http://181.114.111.21', 'https://181.114.111.21']
-      : ['http://localhost:3000', 'http://localhost:3002', 'http://localhost:8000'],
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Cache-Control', 'Pragma'],
-    credentials: true,
-    maxAge: 86400, // 24 hours
-  });
 
   // Global filters and interceptors
   app.useGlobalFilters(new HttpExceptionFilter());
@@ -86,7 +97,7 @@ async function bootstrap() {
   });
 
   // Health check endpoint
-  app.getHttpAdapter().get('/health', (req, res) => {
+  app.getHttpAdapter().get('/health', (req: any, res: any) => {
     res.json({
       status: 'ok',
       timestamp: new Date().toISOString(),

@@ -47,6 +47,7 @@ services:
     volumes:
       - ./Portfolio-Jhasmany-Backend:/app
       - /app/node_modules
+      - ./Portfolio-Jhasmany-Backend/uploads:/app/uploads
     ports:
       - "3001:3001"
     environment:

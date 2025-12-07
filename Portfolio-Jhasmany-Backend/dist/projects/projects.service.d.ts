@@ -10,6 +10,7 @@ export declare class ProjectsService {
     findOne(id: string): Promise<Project>;
     findByAuthor(authorId: string): Promise<Project[]>;
     update(id: string, updateProjectDto: UpdateProjectDto): Promise<Project>;
+    private deleteImageFile;
     remove(id: string): Promise<void>;
     updateOrder(id: string, order: number): Promise<Project>;
     togglePublished(id: string): Promise<Project>;

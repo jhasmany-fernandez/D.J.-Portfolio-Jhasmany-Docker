@@ -17,6 +17,8 @@ const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const project_entity_1 = require("./entities/project.entity");
+const fs_1 = require("fs");
+const path_1 = require("path");
 let ProjectsService = class ProjectsService {
     constructor(projectsRepository) {
         this.projectsRepository = projectsRepository;
@@ -57,10 +59,43 @@ let ProjectsService = class ProjectsService {
         });
     }
     async update(id, updateProjectDto) {
+        const existingProject = await this.findOne(id);
+        if (updateProjectDto.imageUrl && existingProject.imageUrl) {
+            await this.deleteImageFile(existingProject.imageUrl);
+        }
+        if (updateProjectDto.cover && existingProject.cover) {
+            await this.deleteImageFile(existingProject.cover);
+        }
         await this.projectsRepository.update(id, updateProjectDto);
         return this.findOne(id);
     }
+    async deleteImageFile(imageUrl) {
+        try {
+            const filename = imageUrl.split('/').pop();
+            if (!filename)
+                return;
+            const filePath = (0, path_1.join)(process.cwd(), 'uploads', filename);
+            try {
+                await fs_1.promises.access(filePath);
+                await fs_1.promises.unlink(filePath);
+                console.log(`Deleted old image: ${filename}`);
+            }
+            catch (error) {
+                console.log(`Image file not found or already deleted: ${filename}`);
+            }
+        }
+        catch (error) {
+            console.error('Error deleting image file:', error);
+        }
+    }
     async remove(id) {
+        const project = await this.findOne(id);
+        if (project.imageUrl) {
+            await this.deleteImageFile(project.imageUrl);
+        }
+        if (project.cover) {
+            await this.deleteImageFile(project.cover);
+        }
         const result = await this.projectsRepository.delete(id);
         if (result.affected === 0) {
             throw new common_1.NotFoundException(`Project with ID ${id} not found`);

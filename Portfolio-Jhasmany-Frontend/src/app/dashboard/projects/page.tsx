@@ -9,7 +9,7 @@ interface ProjectWithId extends Project {
 }
 
 export default function ProjectsPage() {
-  console.log('ProjectsPage component rendering...')
+  console.log('ProjectsPage component rendering with file upload feature...')
 
   const toast = useToast()
   const [projects, setProjects] = useState<ProjectWithId[]>([])
@@ -19,6 +19,9 @@ export default function ProjectsPage() {
   const [editingProject, setEditingProject] = useState<ProjectWithId | null>(null)
   const [editForm, setEditForm] = useState<ProjectWithId | null>(null)
   const [saving, setSaving] = useState(false)
+  const [uploadingImage, setUploadingImage] = useState(false)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
 
   // Fetch projects
   const fetchProjects = async () => {
@@ -66,16 +69,67 @@ export default function ProjectsPage() {
     }
   }
 
+  // Handle file selection
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      setSelectedFile(file)
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setPreviewUrl(reader.result as string)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  // Upload image to backend via Next.js API proxy
+  const uploadImage = async () => {
+    if (!selectedFile) return null
+
+    setUploadingImage(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', selectedFile)
+
+      // Use Next.js API route as proxy to avoid CORS issues
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      })
+
+      if (response.ok) {
+        const result = await response.json()
+        toast.success('Imagen subida exitosamente')
+        return result.url
+      } else {
+        const errorData = await response.json()
+        console.error('Upload error:', errorData)
+        toast.error('Error al subir la imagen')
+        return null
+      }
+    } catch (error) {
+      console.error('Error uploading image:', error)
+      toast.error('Error al subir la imagen')
+      return null
+    } finally {
+      setUploadingImage(false)
+    }
+  }
+
   // Start editing project
   const startEditing = (project: ProjectWithId) => {
     setEditingProject(project)
     setEditForm({ ...project })
+    setSelectedFile(null)
+    setPreviewUrl(null)
   }
 
   // Cancel editing
   const cancelEditing = () => {
     setEditingProject(null)
     setEditForm(null)
+    setSelectedFile(null)
+    setPreviewUrl(null)
   }
 
   // Update form field
@@ -95,6 +149,18 @@ export default function ProjectsPage() {
     console.log('Saving project:', editForm)
     setSaving(true)
     try {
+      // Upload image first if a file was selected
+      if (selectedFile) {
+        const imageUrl = await uploadImage()
+        if (imageUrl) {
+          editForm.cover = imageUrl
+        } else {
+          toast.error('Error al subir la imagen. Por favor, intenta de nuevo.')
+          setSaving(false)
+          return
+        }
+      }
+
       // Filter out fields that shouldn't be sent to the backend
       const { id, createdAt, updatedAt, authorId, author, ...updateData } = editForm as any
 
@@ -417,18 +483,52 @@ export default function ProjectsPage() {
                 </div>
               </div>
 
-              {/* Cover Image URL */}
+              {/* Cover Image Upload */}
               <div>
-                <label className="block text-sm font-medium text-neutral mb-1">
-                  URL de Imagen de Portada *
+                <label className="block text-sm font-medium text-neutral mb-2">
+                  Imagen de Portada
                 </label>
-                <input
-                  type="url"
-                  value={editForm.cover}
-                  onChange={(e) => updateFormField('cover', e.target.value)}
-                  className="w-full px-3 py-2 border border-border rounded-lg bg-primary text-neutral focus:outline-none focus:ring-2 focus:ring-accent"
-                  required
-                />
+
+                {/* File Upload */}
+                <div className="mb-3">
+                  <label className="block text-sm text-tertiary-content mb-2">
+                    Subir nueva imagen:
+                  </label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileSelect}
+                    className="w-full px-3 py-2 border border-border rounded-lg bg-primary text-neutral focus:outline-none focus:ring-2 focus:ring-accent file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-accent file:text-secondary hover:file:bg-accent/80"
+                  />
+                  {previewUrl && (
+                    <div className="mt-3">
+                      <img
+                        src={previewUrl}
+                        alt="Vista previa"
+                        className="max-w-xs max-h-48 rounded-lg border border-border"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Mostrar imagen actual si existe */}
+                {editForm.cover && !selectedFile && (
+                  <div className="mb-3">
+                    <label className="block text-sm text-tertiary-content mb-2">
+                      Imagen actual:
+                    </label>
+                    <div className="mt-2">
+                      <img
+                        src={editForm.cover}
+                        alt="Imagen actual"
+                        className="max-w-xs max-h-48 rounded-lg border border-border"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = 'none'
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Live Preview and GitHub */}

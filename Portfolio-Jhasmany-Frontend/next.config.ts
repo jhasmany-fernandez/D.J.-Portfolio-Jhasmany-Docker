@@ -15,6 +15,9 @@ const nextConfig: NextConfig = {
   },
 
   images: {
+    unoptimized: false,
+    dangerouslyAllowSVG: true,
+    minimumCacheTTL: 60,
     remotePatterns: [
       {
         protocol: 'https',
@@ -39,6 +42,24 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'i.pravatar.cc',
+      },
+      {
+        protocol: 'http',
+        hostname: '181.114.111.21',
+        port: '3001',
+        pathname: '/uploads/**',
+      },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '3001',
+        pathname: '/uploads/**',
+      },
+      {
+        protocol: 'http',
+        hostname: 'backend',
+        port: '3001',
+        pathname: '/uploads/**',
       },
     ],
   },

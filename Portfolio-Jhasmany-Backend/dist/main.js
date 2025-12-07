@@ -8,30 +8,37 @@ const compression = require("compression");
 const app_module_1 = require("./app.module");
 const http_exception_filter_1 = require("./common/filters/http-exception.filter");
 const logging_interceptor_1 = require("./common/interceptors/logging.interceptor");
+const path_1 = require("path");
 async function bootstrap() {
     const app = await core_1.NestFactory.create(app_module_1.AppModule, {
         logger: ['error', 'warn', 'log', 'debug', 'verbose'],
     });
-    app.use((0, helmet_1.default)({
-        contentSecurityPolicy: {
-            directives: {
-                defaultSrc: ["'self'"],
-                styleSrc: ["'self'", "'unsafe-inline'"],
-                scriptSrc: ["'self'"],
-                imgSrc: ["'self'", "data:", "https:"],
-            },
-        },
-    }));
-    app.use(compression());
+    app.useStaticAssets((0, path_1.join)(__dirname, '..', 'uploads'), {
+        prefix: '/uploads/',
+    });
     app.enableCors({
-        origin: process.env.NODE_ENV === 'production'
-            ? ['http://181.114.111.21', 'https://181.114.111.21']
-            : ['http://localhost:3000', 'http://localhost:3002', 'http://localhost:8000'],
+        origin: (origin, callback) => {
+            if (!origin)
+                return callback(null, true);
+            callback(null, true);
+        },
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
         allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Cache-Control', 'Pragma'],
         credentials: true,
         maxAge: 86400,
     });
+    app.use((0, helmet_1.default)({
+        crossOriginResourcePolicy: { policy: "cross-origin" },
+        contentSecurityPolicy: {
+            directives: {
+                defaultSrc: ["'self'"],
+                styleSrc: ["'self'", "'unsafe-inline'"],
+                scriptSrc: ["'self'"],
+                imgSrc: ["'self'", "data:", "https:", "http:"],
+            },
+        },
+    }));
+    app.use(compression());
     app.useGlobalFilters(new http_exception_filter_1.HttpExceptionFilter());
     app.useGlobalInterceptors(new logging_interceptor_1.LoggingInterceptor());
     app.useGlobalPipes(new common_1.ValidationPipe({

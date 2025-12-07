@@ -8,6 +8,7 @@ import { ProjectsModule } from './projects/projects.module';
 import { ContactModule } from './contact/contact.module';
 import { UsersModule } from './users/users.module';
 import { NewsletterModule } from './newsletter/newsletter.module';
+import { UploadModule } from './upload/upload.module';
 import { DatabaseConfig } from './config/database.config';
 
 @Module({
@@ -42,6 +43,7 @@ import { DatabaseConfig } from './config/database.config';
     ProjectsModule,
     ContactModule,
     NewsletterModule,
+    UploadModule,
   ],
   controllers: [],
   providers: [

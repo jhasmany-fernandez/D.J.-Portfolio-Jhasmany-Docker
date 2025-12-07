@@ -17,6 +17,7 @@ const projects_module_1 = require("./projects/projects.module");
 const contact_module_1 = require("./contact/contact.module");
 const users_module_1 = require("./users/users.module");
 const newsletter_module_1 = require("./newsletter/newsletter.module");
+const upload_module_1 = require("./upload/upload.module");
 const database_config_1 = require("./config/database.config");
 let AppModule = class AppModule {
 };
@@ -54,6 +55,7 @@ exports.AppModule = AppModule = __decorate([
             projects_module_1.ProjectsModule,
             contact_module_1.ContactModule,
             newsletter_module_1.NewsletterModule,
+            upload_module_1.UploadModule,
         ],
         controllers: [],
         providers: [

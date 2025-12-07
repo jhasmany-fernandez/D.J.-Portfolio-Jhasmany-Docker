@@ -4,6 +4,8 @@ import { Repository } from 'typeorm';
 import { Project } from './entities/project.entity';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
+import { promises as fs } from 'fs';
+import { join } from 'path';
 
 @Injectable()
 export class ProjectsService {
@@ -56,11 +58,60 @@ export class ProjectsService {
   }
 
   async update(id: string, updateProjectDto: UpdateProjectDto): Promise<Project> {
+    // Get existing project to check for old images
+    const existingProject = await this.findOne(id);
+
+    // Delete old images if new ones are provided
+    if (updateProjectDto.imageUrl && existingProject.imageUrl) {
+      await this.deleteImageFile(existingProject.imageUrl);
+    }
+    if (updateProjectDto.cover && existingProject.cover) {
+      await this.deleteImageFile(existingProject.cover);
+    }
+
     await this.projectsRepository.update(id, updateProjectDto);
     return this.findOne(id);
   }
 
+  /**
+   * Helper method to delete image file from uploads directory
+   */
+  private async deleteImageFile(imageUrl: string): Promise<void> {
+    try {
+      // Extract filename from URL
+      // URLs can be: /api/images/filename.jpg or /uploads/filename.jpg or full URL
+      const filename = imageUrl.split('/').pop();
+      if (!filename) return;
+
+      const filePath = join(process.cwd(), 'uploads', filename);
+
+      // Check if file exists before attempting to delete
+      try {
+        await fs.access(filePath);
+        await fs.unlink(filePath);
+        console.log(`Deleted old image: ${filename}`);
+      } catch (error) {
+        // File doesn't exist or can't be accessed, ignore
+        console.log(`Image file not found or already deleted: ${filename}`);
+      }
+    } catch (error) {
+      console.error('Error deleting image file:', error);
+      // Don't throw error, just log it - we don't want to fail the update if image deletion fails
+    }
+  }
+
   async remove(id: string): Promise<void> {
+    // Get project to delete associated images
+    const project = await this.findOne(id);
+
+    // Delete associated image files
+    if (project.imageUrl) {
+      await this.deleteImageFile(project.imageUrl);
+    }
+    if (project.cover) {
+      await this.deleteImageFile(project.cover);
+    }
+
     const result = await this.projectsRepository.delete(id);
     if (result.affected === 0) {
       throw new NotFoundException(`Project with ID ${id} not found`);
