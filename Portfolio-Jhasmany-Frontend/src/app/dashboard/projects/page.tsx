@@ -2,6 +2,7 @@
 
 import { Project } from '@/lib/types'
 import { useEffect, useState } from 'react'
+import { useToast } from '@/hooks/useToast'
 
 interface ProjectWithId extends Project {
   id: string
@@ -10,6 +11,7 @@ interface ProjectWithId extends Project {
 export default function ProjectsPage() {
   console.log('ProjectsPage component rendering...')
 
+  const toast = useToast()
   const [projects, setProjects] = useState<ProjectWithId[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -54,12 +56,13 @@ export default function ProjectsPage() {
 
       if (response.ok) {
         fetchProjects() // Refresh list
+        toast.success('Proyecto eliminado exitosamente')
       } else {
-        alert('Error al eliminar el proyecto')
+        toast.error('Error al eliminar el proyecto')
       }
     } catch (error) {
       console.error('Error deleting project:', error)
-      alert('Error al eliminar el proyecto')
+      toast.error('Error al eliminar el proyecto')
     }
   }
 
@@ -113,15 +116,15 @@ export default function ProjectsPage() {
         await fetchProjects() // Refresh list
 
         cancelEditing() // Close modal
-        alert('Proyecto actualizado exitosamente')
+        toast.success('Proyecto actualizado exitosamente')
       } else {
         const errorText = await response.text()
         console.error('Save error response:', errorText)
-        alert('Error al actualizar el proyecto')
+        toast.error('Error al actualizar el proyecto')
       }
     } catch (error) {
       console.error('Error updating project:', error)
-      alert('Error al actualizar el proyecto')
+      toast.error('Error al actualizar el proyecto')
     } finally {
       setSaving(false)
     }
@@ -748,6 +751,7 @@ export default function ProjectsPage() {
           </div>
         </div>
       )}
+      <toast.ToastContainer />
     </div>
   )
 }

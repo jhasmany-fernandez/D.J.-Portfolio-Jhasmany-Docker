@@ -87,6 +87,7 @@
   --animate-fade-in: fade-in 0.5s ease-out 1;
   --animate-blink: blink 0.8s ease-in-out infinite;
   --animate-fade-up: fade-up 0.3s ease-out 1;
+  --animate-slide-in-right: slide-in-right 0.3s ease-out 1;
 
   --background-image-large-glow: url('../assets/images/bg-lg.svg');
   --background-image-small-glow: url('../assets/images/bg-sm.svg');
@@ -123,6 +124,16 @@
     }
     100% {
       top: 0px;
+    }
+  }
+  @keyframes slide-in-right {
+    0% {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+    100% {
+      transform: translateX(0);
+      opacity: 1;
     }
   }
 }

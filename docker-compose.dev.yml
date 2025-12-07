@@ -29,8 +29,12 @@ services:
       - NODE_ENV=development
       - NEXT_TELEMETRY_DISABLED=1
       - WATCHPACK_POLLING=true
-      - NEXT_PUBLIC_API_URL=http://localhost:3001
+      # Public URL for client-side requests (browser)
+      - NEXT_PUBLIC_API_URL=http://181.114.111.21:3001
+      # Internal URL for server-side requests (SSR)
       - API_URL=http://backend:3001
+      # Public site URL
+      - NEXT_PUBLIC_SITE_URL=http://181.114.111.21:3002
     depends_on:
       - backend
     networks:
@@ -55,7 +59,8 @@ services:
       - DB_NAME=portfolio_db
       - JWT_SECRET=your-super-secret-jwt-key-change-in-production
       - JWT_EXPIRES_IN=7d
-      - FRONTEND_URL=http://localhost:3002
+      # Allow CORS from public IP for development
+      - FRONTEND_URL=http://181.114.111.21:3002
     depends_on:
       - postgres
     networks:
